@@ -62,7 +62,7 @@
 - Name, group image, description
 - Group owner can:
 
-  - Add/remove members
+  - Add/remove members 
   - Delete group
 
 - Chat features:
