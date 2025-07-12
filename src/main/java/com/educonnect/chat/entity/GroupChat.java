@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -21,6 +23,7 @@ public class GroupChat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String name;
 
     @ManyToMany
@@ -29,10 +32,15 @@ public class GroupChat {
             joinColumns = @JoinColumn(name = "group_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<Users> members;
+    private Set<Users> members = new HashSet<>();
 
-    private Users.University university;
+    @ManyToOne
+    @JoinColumn(name = "admin", nullable = false)
+    private Users admin;
 
-    private Users.Course course;
+    private boolean isPrivate = false;
+
+    @OneToMany(mappedBy = "group")
+    private List<GroupRequestJoin> requests;
 
 }

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.WithBy;
 
 import java.time.Instant;
+import java.util.Date;
 
 @Entity
 @NoArgsConstructor
@@ -32,7 +33,7 @@ public class GroupChatMessage {
     @Enumerated(EnumType.STRING)
     private MediaType mediaType;
 
-    private Instant timestamp;
+    private Instant timestamp = new Date().toInstant();
 
     @ManyToOne
     @JoinColumn(name = "sender_id")

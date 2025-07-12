@@ -93,13 +93,8 @@ public class AuthService {
             throw new BusinessRuleViolationException("Null Attributes got.");
         }
 
-//        username = username == null ? "" : username;
-//        email = email == null ? "" : email;
 
         Optional<Users> user = userRepository.getByUsernameOrEmail(username, email);
-
-        if (user.isPresent()) System.out.println(user.get());
-//        System.out.println(user.toString() + passwordEncoder.matches(password, user.orElse(null).getPassword()));
 
         if (user.isEmpty() || !passwordEncoder.matches(password, user.get().getPassword())){
             throw new InvalidCredentialsException("Login credentials are not valid.");

@@ -71,18 +71,20 @@ public interface UserRepository extends JpaRepository<Users, UUID> {
     SELECT DISTINCT ON (partner_id) u.*
     FROM (
         SELECT
-            m.*,
-            CASE 
-                WHEN m.sender_id = :userId THEN m.receiver_id 
-                ELSE m.sender_id 
+            *,
+            CASE
+                WHEN sender_id = :userId THEN receiver_id
+                ELSE sender_id
             END AS partner_id
-        FROM private_chat_message m
-        WHERE m.sender_id = :userId OR m.receiver_id = :userId
-        ORDER BY partner_id, m.timestamp DESC
+        FROM private_chat_message
+        WHERE sender_id = :userId OR receiver_id = :userId
     ) AS sub
     JOIN users u ON sub.partner_id = u.id
+    ORDER BY partner_id, timestamp DESC
     """, nativeQuery = true)
     List<Users> getChatUsers(@Param("userId") UUID userId);
+
+
 
 
 

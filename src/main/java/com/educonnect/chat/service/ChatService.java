@@ -1,17 +1,25 @@
 package com.educonnect.chat.service;
 
 
+import com.educonnect.chat.dto.request.GroupChatRequest;
+import com.educonnect.chat.dto.request.GroupJoinRequest;
 import com.educonnect.chat.dto.request.PrivateChatRequest;
+import com.educonnect.chat.entity.GroupChat;
+import com.educonnect.chat.entity.GroupChatMessage;
+import com.educonnect.chat.entity.GroupRequestJoin;
 import com.educonnect.chat.entity.PrivateChatMessage;
 import com.educonnect.chat.repository.GroupChatMessageRepository;
 import com.educonnect.chat.repository.GroupChatRepository;
+import com.educonnect.chat.repository.GroupRequestJoinRepository;
 import com.educonnect.chat.repository.PrivateChatMessageRepository;
 import com.educonnect.exceptionhandling.exception.BusinessRuleViolationException;
+import com.educonnect.exceptionhandling.exception.InvalidCredentialsException;
 import com.educonnect.user.entity.Users;
 import com.educonnect.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ChatService {
@@ -24,14 +32,23 @@ public class ChatService {
 
     private final UserRepository userRepository;
 
-    public ChatService(UserRepository userRepository, PrivateChatMessageRepository privateChatMessageRepository, GroupChatMessageRepository groupChatMessageRepository, GroupChatRepository groupChatRepository){
+    private final GroupRequestJoinRepository groupRequestJoinRepository;
+
+    public ChatService(
+            UserRepository userRepository,
+            PrivateChatMessageRepository privateChatMessageRepository,
+            GroupChatMessageRepository groupChatMessageRepository,
+            GroupChatRepository groupChatRepository,
+            GroupRequestJoinRepository groupRequestJoinRepository
+    ){
         this.privateChatMessageRepository = privateChatMessageRepository;
         this.groupChatRepository = groupChatRepository;
         this.groupChatMessageRepository = groupChatMessageRepository;
         this.userRepository = userRepository;
+        this.groupRequestJoinRepository = groupRequestJoinRepository;
     }
 
-    public void privateChat(PrivateChatRequest request){
+    public PrivateChatMessage privateChat(PrivateChatRequest request){
         if (request.getMediaType() == null || request.getContent() == null || request.getFileUrl() == null || request.getFileName() == null || request.getSenderUname() == null || request.getReceiverUname() == null || request.getTimestamp() == null){
             throw new BusinessRuleViolationException("Null attributes given.");
         }
@@ -55,7 +72,7 @@ public class ChatService {
 
         privateChatMessageRepository.save(message);
 
-        return;
+        return message;
 
     }
 
@@ -65,6 +82,82 @@ public class ChatService {
             throw new BusinessRuleViolationException("sender or receiver doesn't found.");
         }
         return privateChatMessageRepository.chatWith(sender, receiver);
+    }
+
+    public GroupChat makeGroup(GroupChatRequest request, Users admin){
+        if (request.getName() == null || request.getName().isEmpty() || admin == null){
+            throw new BusinessRuleViolationException("null attributes given.");
+        }
+
+        GroupChat groupChat = GroupChat.builder()
+                .admin(admin)
+                .isPrivate(request.isPrivate())
+                .name(request.getName())
+                .build();
+
+        return groupChatRepository.save(groupChat);
+    }
+
+    public GroupChat getGroup(String name){
+        if (name == null){
+            throw new BusinessRuleViolationException("null attributes given.");
+        }
+
+        GroupChat groupChat = groupChatRepository.findByName(name).orElseThrow(() -> {
+            throw new InvalidCredentialsException("invalid name for group.");
+        });
+
+        return groupChat;
+    }
+
+    public List<GroupChatMessage> getGroupMessages(String name){
+        GroupChat groupChat = groupChatRepository.findByName(name).orElseThrow(() -> {
+            throw new BusinessRuleViolationException("group name is wrong.");
+        });
+
+        List<GroupChatMessage> messages = groupChatMessageRepository.getMessages(groupChat);
+
+        return messages;
+    }
+
+    public List<GroupChat> myGroups(Users user){
+        List<GroupChat> groups = groupChatRepository.myGroups(user);
+
+        return groups;
+    }
+
+    public void joinRequest(GroupJoinRequest request){
+        Users sender = userRepository.findByUsername(request.getUsername());
+        Optional<GroupChat> groupChat = groupChatRepository.findByName(request.getGroupName());
+
+        if (sender == null || groupChat.isEmpty()){
+            throw new BusinessRuleViolationException("wrong attributes given.");
+        }
+
+        GroupRequestJoin groupRequestJoin = new GroupRequestJoin();
+        groupRequestJoin.setGroup(groupChat.get());
+        groupRequestJoin.setSender(sender);
+
+        groupRequestJoinRepository.save(groupRequestJoin);
+
+    }
+
+    public void joinMember(GroupJoinRequest request){
+        Users sender = userRepository.findByUsername(request.getUsername());
+        Optional<GroupChat> groupChat = groupChatRepository.findByName(request.getGroupName());
+
+        if (sender == null || groupChat.isEmpty()){
+            throw new BusinessRuleViolationException("wrong attributes given.");
+        }
+
+        groupChat.get().getMembers().add(sender);
+
+        groupChatRepository.save(groupChat.get());
+    }
+
+    public List<GroupChat> searchGroup(String search){
+        List<GroupChat> groups = groupChatRepository.search(search);
+        return groups;
     }
 
 }

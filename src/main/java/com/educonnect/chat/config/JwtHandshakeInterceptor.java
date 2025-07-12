@@ -1,6 +1,7 @@
 package com.educonnect.chat.config;
 
 import com.educonnect.auth.security.JwtUtils;
+import com.educonnect.exceptionhandling.exception.JwtTokenExpired;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServerHttpRequest;
@@ -26,7 +27,15 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
         if (request instanceof ServletServerHttpRequest servletRequest) {
             HttpServletRequest httpRequest = servletRequest.getServletRequest();
-            String token = httpRequest.getParameter("token"); // 👈 Extract from URL
+
+            String query = request.getURI().getQuery(); // e.g. "token=abc.def.ghi"
+            query = query.split("&t=")[0];
+            String token = null;
+
+            if (query != null && query.startsWith("token=")) {
+                token = query.substring("token=".length());
+            }
+            System.out.println(token + "inside handshake");// 👈 Extract from URL
 
             if (token != null) {
                 String username = jwtUtils.extractUsername(token);
@@ -34,6 +43,9 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                     Principal principal = () -> username;
                     attributes.put("user", principal);
                     return true;
+                }
+                else{
+                    throw new JwtTokenExpired("Jwt token is expired.");
                 }
             }
         }
@@ -47,4 +59,6 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                                WebSocketHandler wsHandler, Exception exception) {
         // No action needed
     }
+
+
 }
