@@ -3,6 +3,7 @@ package com.educonnect.chat.repository;
 import com.educonnect.chat.entity.GroupChat;
 import com.educonnect.chat.entity.GroupChatMessage;
 import com.educonnect.chat.entity.PrivateChatMessage;
+import com.educonnect.user.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -23,5 +24,4 @@ public interface GroupChatMessageRepository extends JpaRepository<GroupChatMessa
             timestamp ASC
             """)
     List<GroupChatMessage> getMessages( GroupChat groupChat);
-
 }

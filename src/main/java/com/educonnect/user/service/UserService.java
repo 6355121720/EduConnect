@@ -147,8 +147,14 @@ public class UserService {
         String search = request.getSearch() == null ? "" : request.getSearch();
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
-        Page<Users> users = userRepository.search(request.getSearch(), request.getUniversity(), request.getCourse(), request.getSkills(), pageable);
-        List<SuggestDTO> suggests =  users.stream().map(user -> new SuggestDTO(user, connectionService.getStatusById(servletRequest, response, user.getId()))).toList();
+
+        Page<UUID> users = userRepository.searchUserIds(request.getSearch(), request.getUniversity(), request.getCourse(), request.getSkills(), pageable);
+
+        List<Users> tempUsers = userRepository.findByIdIn(users.getContent());
+
+        Page<Users> resUsers = new PageImpl<>(tempUsers, pageable, users.getTotalElements());
+
+        List<SuggestDTO> suggests =  resUsers.stream().map(user -> new SuggestDTO(user, connectionService.getStatusById(servletRequest, response, user.getId()))).toList();
         return  new PageImpl<>(suggests, pageable, users.getTotalElements());
     }
 

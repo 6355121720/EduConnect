@@ -2,9 +2,10 @@ package com.educonnect.chat.controller;
 
 
 import com.educonnect.auth.service.AuthService;
-import com.educonnect.chat.dto.request.GroupChatRequest;
-import com.educonnect.chat.dto.request.GroupJoinRequest;
-import com.educonnect.chat.dto.request.PrivateChatRequest;
+import com.educonnect.chat.dto.dto.GroupChatDTO;
+import com.educonnect.chat.dto.dto.GroupChatMessageDTO;
+import com.educonnect.chat.dto.dto.GroupRequestJoinDTO;
+import com.educonnect.chat.dto.request.*;
 import com.educonnect.chat.entity.GroupChat;
 import com.educonnect.chat.entity.GroupChatMessage;
 import com.educonnect.chat.entity.GroupRequestJoin;
@@ -74,28 +75,28 @@ public class ChatRestController {
     }
 
     @PostMapping("/make-group")
-    public ResponseEntity<GroupChat> makeGroup(HttpServletRequest request, HttpServletResponse response, @RequestBody GroupChatRequest requestData){
+    public ResponseEntity<GroupChatDTO> makeGroup(HttpServletRequest request, HttpServletResponse response, @RequestBody GroupChatRequest requestData){
         Users admin = authService.me(request, response);
-        GroupChat groupChat = chatService.makeGroup(requestData, admin);
+        GroupChatDTO groupChat = chatService.makeGroup(requestData, admin);
         return ResponseEntity.ok(groupChat);
     }
 
     @GetMapping("/get-group/{groupName}")
-    public ResponseEntity<GroupChat> getGroup(@PathVariable("groupName") String name){
-        GroupChat groupChat = chatService.getGroup(name);
+    public ResponseEntity<GroupChatDTO> getGroup(@PathVariable("groupName") String name){
+        GroupChatDTO groupChat = chatService.getGroup(name);
         return ResponseEntity.ok(groupChat);
     }
 
     @GetMapping("/get-group-messages/{groupName}")
-    public ResponseEntity<List<GroupChatMessage>> getGroupMessages(@PathVariable("groupName") String name){
-        List<GroupChatMessage> messages = chatService.getGroupMessages(name);
+    public ResponseEntity<List<GroupChatMessageDTO>> getGroupMessages(@PathVariable("groupName") String name){
+        List<GroupChatMessageDTO> messages = chatService.getGroupMessages(name);
         return ResponseEntity.ok(messages);
     }
 
     @GetMapping("/my-groups")
-    public ResponseEntity<List<GroupChat>> myGroups(HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<List<GroupChatDTO>> myGroups(HttpServletRequest request, HttpServletResponse response){
         Users currentUser = authService.me(request, response);
-        List<GroupChat> groups = chatService.myGroups(currentUser);
+        List<GroupChatDTO> groups = chatService.myGroups(currentUser);
         return ResponseEntity.ok(groups);
     }
 
@@ -107,14 +108,61 @@ public class ChatRestController {
 
     @PostMapping("/group-request")
     public ResponseEntity<?> joinRequest(@RequestBody GroupJoinRequest request){
-        chatService.joinRequest(request);
+        chatService.joinRequest(request, false);
         return ResponseEntity.ok(null);
     }
 
     @GetMapping("/group-search")
-    public ResponseEntity<List<GroupChat>> searchGroup(@RequestParam("search") String search){
-        List<GroupChat> groups = chatService.searchGroup(search);
+    public ResponseEntity<List<GroupChatDTO>> searchGroup(@RequestParam("search") String search){
+        List<GroupChatDTO> groups = chatService.searchGroup(search);
         return ResponseEntity.ok(groups);
     }
 
+    @GetMapping("/valid-group")
+    public ResponseEntity<Boolean> isValidGroup(@RequestParam("name") String name){
+        boolean isValid = chatService.isValidGroup(name);
+        return ResponseEntity.ok(isValid);
+    }
+
+    @PostMapping("/store-group-message")
+    public ResponseEntity<GroupChatMessageDTO> storeGroupMessage(@RequestBody GroupChatMessageRequest request){
+        GroupChatMessageDTO message = chatService.storeGroupMessage(request);
+        return ResponseEntity.ok(message);
+    }
+
+    @PostMapping("/group-invites")
+    public ResponseEntity<?> inviteGroup(@RequestBody GroupJoinRequest request){
+        chatService.joinRequest(request, true);
+        return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/bulk-group-invites")
+    public ResponseEntity<?> bulkGroupInvites(@RequestBody BulkGroupInvites request){
+        chatService.bulkGroupInvites(request);
+        return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/leave-group")
+    public ResponseEntity<?> leaveGroup(@RequestBody GroupJoinRequest request){
+        chatService.leaveGroup(request);
+        return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/get-invites")
+    public ResponseEntity<List<GroupRequestJoinDTO>> getInvites(@RequestBody Users user){
+        List<GroupRequestJoinDTO> response = chatService.getInvites(user);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/handle-invite")
+    public ResponseEntity<?> handleInvite(@RequestBody HandleInviteRequest request){
+        chatService.handleInvite(request);
+        return ResponseEntity.ok(null);
+    }
+
+    @GetMapping("/get-incoming-requests")
+    public ResponseEntity<List<Users>> getIncomingRequests(@RequestParam("group-name") String groupName){
+        List<Users> users = chatService.getIncomingRequests(groupName);
+        return ResponseEntity.ok(users);
+    }
 }

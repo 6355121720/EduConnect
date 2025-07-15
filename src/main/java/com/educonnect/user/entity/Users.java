@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -328,7 +329,10 @@ public class Users {
 
     }
 
-
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
 }
 

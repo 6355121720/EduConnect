@@ -25,7 +25,7 @@ public class EmailService {
         this.javaMailSender = javaMailSender;
     }
 
-    public void sendMail(SendOtpRequest request){
+    public void sendOtp(SendOtpRequest request){
         if (!EmailValidationUtil.isValid(request.getTo()) || request.getOtp() == null){
             throw new BusinessRuleViolationException("Give valid email credentials");
         }
@@ -57,6 +57,23 @@ public class EmailService {
         }
         catch (Exception e){
             throw new EmailSenderException(e.getCause().toString());
+        }
+    }
+
+    public void sendGroupJoinRequest(String from, String groupName, String email){
+        if (!EmailValidationUtil.isValid(email) || from == null || groupName == null){
+            throw new BusinessRuleViolationException("Give valid email attributes.");
+        }
+        try{
+            System.out.println(email);
+            SimpleMailMessage mail = new SimpleMailMessage();
+            mail.setTo(email);
+            mail.setSubject("Inviting for joining Group");
+            mail.setText("I " + from + " invite you to join my group " + groupName + ".");
+            javaMailSender.send(mail);
+        }
+        catch(Exception e){
+            throw new EmailSenderException("exception while sending join request." + e.getMessage() + e.getLocalizedMessage());
         }
     }
 

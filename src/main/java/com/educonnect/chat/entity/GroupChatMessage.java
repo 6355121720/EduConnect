@@ -39,7 +39,7 @@ public class GroupChatMessage {
     @JoinColumn(name = "sender_id")
     private Users sender;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     private GroupChat groupChat;
 

@@ -23,7 +23,7 @@ public class EmailController {
 
     @PostMapping("/otp")
     public ResponseEntity sendOtp(@RequestBody SendOtpRequest request){
-        emailService.sendMail(request);
+        emailService.sendOtp(request);
         return ResponseEntity.status(HttpStatus.OK).body("Email successfully sended.");
     }
 

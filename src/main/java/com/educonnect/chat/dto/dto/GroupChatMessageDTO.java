@@ -1,4 +1,4 @@
-package com.educonnect.chat.dto.response;
+package com.educonnect.chat.dto.dto;
 
 
 import com.educonnect.chat.entity.GroupChatMessage;
@@ -7,19 +7,25 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class GroupChatMessageResponse {
+public class GroupChatMessageDTO {
 
-    private Users sender;
-
-    private GroupChatMessage.MediaType mediaType;
+    private String content;
 
     private String fileUrl;
 
     private String fileName;
 
-    private String content;
+    private GroupChatMessage.MediaType mediaType;
+
+    private Instant timestamp;
+
+    private Users sender;
+
+    private String groupName;
 
 }

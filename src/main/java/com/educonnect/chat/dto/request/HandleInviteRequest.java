@@ -5,19 +5,17 @@ import com.educonnect.user.entity.Users;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.security.core.userdetails.User;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class GroupChatRequest {
+public class HandleInviteRequest {
 
-    private String name;
+    private String groupName;
 
-    private Boolean isPrivate;
+    private Users sender;
 
-    private List<Users> notifies = new ArrayList<>();
+    private Boolean accept;
 
 }

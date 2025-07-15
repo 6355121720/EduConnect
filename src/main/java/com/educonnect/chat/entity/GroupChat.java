@@ -38,9 +38,9 @@ public class GroupChat {
     @JoinColumn(name = "admin", nullable = false)
     private Users admin;
 
-    private boolean isPrivate = false;
+    private Boolean isPrivate = false;
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
     private List<GroupRequestJoin> requests;
 
 }
