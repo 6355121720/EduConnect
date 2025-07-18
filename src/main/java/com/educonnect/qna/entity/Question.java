@@ -3,10 +3,7 @@ package com.educonnect.qna.entity;
 
 import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Fetch;
 
 import java.time.Instant;
@@ -17,8 +14,9 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity
 @Data
+@EqualsAndHashCode(exclude = {"tags", "answers", "acceptedAnswer", "author"})
+@Entity
 public class Question {
 
     @Id
@@ -45,10 +43,10 @@ public class Question {
 
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "question")
-    private Set<Vote> votes;
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+    private Set<Vote> votes = new HashSet<>();
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "accepted_id")
     private Answer acceptedAnswer;
 

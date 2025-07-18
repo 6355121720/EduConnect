@@ -32,31 +32,6 @@ public interface UserRepository extends JpaRepository<Users, UUID> {
     @Query("SELECT COUNT(u) FROM Users u WHERE (u.username = :username1 AND u.username != :username2) OR (u.email = :email1 AND u.email != :email2) ")
     long checkUpdate(String username1, String email1, String username2, String email2);
 
-//    @Query("""
-//        SELECT DISTINCT u
-//        FROM Users u
-//        LEFT JOIN u.skills s
-//        WHERE (
-//            :search = '' OR (
-//                LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) OR
-//                LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR
-//                LOWER(SUBSTRING(u.email, 1, LOCATE('@', u.email) - 1)) LIKE LOWER(CONCAT('%', :search, '%'))
-//            )
-//        )
-//        AND (:university IS NULL OR u.university = :university)
-//        AND (:course IS NULL OR u.course = :course)
-//        AND (
-//            :skills IS NULL OR :#{#skills.isEmpty()} = true OR s IN :skills
-//        )
-//    """)
-//        Page<Users> search(
-//                @Param("search") String search,
-//                @Param("university") Users.University university,
-//                @Param("course") Users.Course course,
-//                @Param("skills") List<Users.Skill> skills,
-//                Pageable pageable
-//        );
-
 
     @Query("""
         SELECT DISTINCT u.id

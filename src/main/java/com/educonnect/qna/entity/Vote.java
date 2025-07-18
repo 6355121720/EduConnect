@@ -3,10 +3,7 @@ package com.educonnect.qna.entity;
 
 import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.userdetails.User;
 
 import java.time.Instant;
@@ -14,8 +11,9 @@ import java.util.Date;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Builder
+@Data
+@EqualsAndHashCode(exclude = {"user", "question", "answer"})
 @Entity
 @Table(uniqueConstraints = {
         @UniqueConstraint(columnNames = {"user_id", "question_id"}),
@@ -31,21 +29,14 @@ public class Vote {
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id", nullable = true)
     private Question question;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "answer_id", nullable = true)
     private Answer answer;
 
     private Integer value;
-
-    private Instant createdAt;
-
-    @PrePersist
-    void beforeSaving(){
-        this.createdAt = new Date().toInstant();
-    }
 
 }
