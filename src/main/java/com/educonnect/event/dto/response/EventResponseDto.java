@@ -17,4 +17,5 @@ public class EventResponseDto {
     private int currentParticipants;
     private String createdByUsername;
     private UUID createdById;
+    private  String createdByProfilePictureUrl;
 }

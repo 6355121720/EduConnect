@@ -18,7 +18,8 @@ public class EventMapper {
                 event.getMaxParticipants(),
                 event.getCurrentParticipantCount(),
                 event.getCreatedBy().getUsername(),
-                event.getCreatedBy().getId()
+                event.getCreatedBy().getId(),
+                event.getCreatedBy().getAvatar()
         );
     }
 
