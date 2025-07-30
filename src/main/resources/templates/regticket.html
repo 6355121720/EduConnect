@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>EduConnect - Registration Ticket</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .ticket-container {
+            width: 92%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #8b5cf6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .ticket-number {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+        }
+
+        .main-content {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            min-height: 320px;
+            border-collapse: separate;
+        }
+
+        .left-section {
+            display: table-cell;
+            width: 65%;
+            padding: 30px;
+            vertical-align: top;
+            border-right: 3px solid #e5e7eb;
+            background: white;
+            position: relative;
+        }
+
+        .right-section {
+            display: table-cell;
+            width: 35%;
+            padding: 30px;
+            vertical-align: middle;
+            text-align: center;
+            background: #f9fafb;
+            border-left: none;
+        }
+
+        .brand-section {
+            margin-bottom: 25px;
+        }
+
+        .brand-title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 5px;
+        }
+
+        .brand-title .highlight {
+            color: #8b5cf6;
+        }
+
+        .brand-subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .details-grid {
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px dotted #d1d5db;
+        }
+
+        .detail-label {
+            display: table-cell;
+            width: 40%;
+            font-weight: 600;
+            color: #111827;
+            vertical-align: top;
+            padding-right: 10px;
+        }
+
+        .detail-value {
+            display: table-cell;
+            color: #8b5cf6;
+            font-weight: 500;
+            text-align: right;
+            vertical-align: top;
+        }
+
+        .event-highlight {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 5px solid #8b5cf6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .event-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 10px;
+        }
+
+        .amount-paid {
+            font-size: 20px;
+            font-weight: bold;
+            color: #dc2626;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .qr-container {
+            text-align: center;
+        }
+
+        .qr-code {
+            width: 160px;
+            height: 160px;
+            border: 3px solid #8b5cf6;
+            border-radius: 10px;
+            margin: 0 auto 15px auto;
+            display: block;
+            background: white;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .qr-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .verification-code {
+            background: #111827;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 15px;
+            display: inline-block;
+        }
+
+        .footer {
+            background: #111827;
+            color: #f9fafb;
+            padding: 25px 30px;
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-top: 0;
+            border-top: 3px solid #8b5cf6;
+        }
+
+        .footer-highlight {
+            color: #8b5cf6;
+            font-weight: bold;
+        }
+
+        .print-info {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #374151;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        /* PDF-specific fixes */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .ticket-container {
+                box-shadow: none;
+                border: 2px solid #8b5cf6;
+            }
+
+            .main-content {
+                page-break-inside: avoid;
+            }
+
+            .left-section {
+                border-right: 3px solid #e5e7eb;
+            }
+        }
+
+        /* Fallback for older PDF generators */
+        .fallback-layout {
+            width: 100%;
+        }
+
+        .fallback-left {
+            width: 65%;
+            float: left;
+            padding: 30px;
+            box-sizing: border-box;
+            border-right: 3px solid #e5e7eb;
+            min-height: 320px;
+        }
+
+        .fallback-right {
+            width: 35%;
+            float: right;
+            padding: 30px;
+            box-sizing: border-box;
+            background: #f9fafb;
+            text-align: center;
+            min-height: 320px;
+        }
+
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+</head>
+<body>
+<div class="ticket-container">
+    <!-- Header Section -->
+    <div class="header">
+        <div class="ticket-number">Ticket #<span th:text="${ticketId}">12345</span></div>
+        <h1>EduConnect Registration Ticket</h1>
+    </div>
+
+    <!-- Main Content with Table Layout for Better PDF Support -->
+    <div class="main-content">
+        <!-- Left Section - Details -->
+        <div class="left-section">
+            <div class="brand-section">
+                <div class="brand-title">Welcome to <span class="highlight">EduConnect</span></div>
+                <div class="brand-subtitle">Your gateway to educational excellence</div>
+            </div>
+
+            <!-- Personal Details -->
+            <div class="details-grid">
+                <div class="detail-row">
+                    <div class="detail-label">Participant Name:</div>
+                    <div class="detail-value" th:text="${name}">John Doe</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">User ID:</div>
+                    <div class="detail-value" th:text="${userId}">USR001</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Registration ID:</div>
+                    <div class="detail-value" th:text="${registrationId}">REG001</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Event ID:</div>
+                    <div class="detail-value" th:text="${eventId}">EVT001</div>
+                </div>
+            </div>
+
+            <!-- Event Highlight -->
+            <div class="event-highlight">
+                <div class="event-name" th:text="${eventname}">Annual Tech Conference 2025</div>
+                <div class="detail-row">
+                    <div class="detail-label">Registration Date:</div>
+                    <div class="detail-value" th:text="${printDate}">2025-07-30</div>
+                </div>
+<!--                <div class="amount-paid">Amount Paid: ₹<span th:text="${amount}">999.00</span></div>-->
+            </div>
+        </div>
+
+        <!-- Right Section - QR Code -->
+        <div class="right-section">
+            <div class="qr-container">
+                <img class="qr-code" th:src="'data:image/png;base64,' + ${qrCode}" alt="QR Code for Verification"/>
+                <div class="qr-label">Scan to Verify</div>
+                <div class="verification-code">VERIFIED REGISTRATION</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div>
+            <strong>Important Instructions:</strong><br/>
+            Please present this ticket at the event venue for entry verification.<br/>
+            Keep this ticket safe and bring a valid ID for additional verification.
+        </div>
+<!--        <div class="print-info">-->
+<!--            Generated by <span class="footer-highlight">EduConnect Platform</span> |-->
+<!--            Support: support@educonnect.com |-->
+<!--            Print Date: <span th:text="${printDate}">2025-07-30</span>-->
+<!--        </div>-->
+    </div>
+</div>
+
+<!-- Fallback Layout for PDF Generators that don't support table-cell -->
+<!--
+<div class="ticket-container">
+    <div class="header">
+        <div class="ticket-number">Ticket #<span th:text="${ticketId}">12345</span></div>
+        <h1>EduConnect Registration Ticket</h1>
+    </div>
+
+    <div class="fallback-layout clearfix">
+        <div class="fallback-left">
+            // Left content here
+        </div>
+        <div class="fallback-right">
+            // Right content here
+        </div>
+    </div>
+
+    <div class="footer">
+        // Footer content
+    </div>
+</div>
+-->
+</body>
+</html>
