@@ -24,15 +24,23 @@ public class PdfController {
 
     @GetMapping("/invoice")
     public ResponseEntity<byte[]> getInvoicePdf(
-            @RequestParam Long registrationId) throws Exception {
+            @RequestParam Long registrationId) {
+        try {
+            Ticket ticket = trepo.findByRegistrationId(registrationId);
+            if (ticket == null) {
+                return ResponseEntity.notFound().build();
+            }
 
-        Ticket ticket = trepo.findByRegistrationId(registrationId);
+            byte[] pdfBytes = pdfService.generatePdf(ticket.getId());
 
-        byte[] pdfBytes = pdfService.generatePdf(ticket.getId());
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=ticket.pdf")
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(pdfBytes);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=ticket.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfBytes);
+        } catch (Exception e) {
+            System.err.println("Error generating PDF: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

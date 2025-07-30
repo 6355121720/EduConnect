@@ -32,6 +32,8 @@ public class Registration {
     @Column(nullable = false)
     private Date registrationDate;
 
+    @OneToOne(mappedBy = "registration", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Ticket ticket;
 
     public Registration(Events event, Users user) {
         this.event = event;

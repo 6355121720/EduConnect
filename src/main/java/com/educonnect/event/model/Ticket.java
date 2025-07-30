@@ -4,10 +4,7 @@ import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,21 +20,18 @@ public class Ticket {
     @Column(nullable = false)
     private boolean isActive;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
     private Events event;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-
-    @OneToOne
-    @JoinColumn(name = "registration_id", nullable = false)
+    // Fixed: Made Ticket the owning side of the relationship
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "registration_id", nullable = false, unique = true)
     private Registration registration;
-
 
     public Ticket(boolean isActive, Events event, Users user, Registration registration) {
         this.isActive = isActive;
