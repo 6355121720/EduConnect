@@ -5,6 +5,7 @@ import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.util.Date;
 import java.util.List;
@@ -57,4 +58,8 @@ public class Events {
         return getCurrentParticipantCount() >= maxParticipants;
     }
 
+    public String getEventName() {
+
+        return title != null ? title : "No Title";
+    }
 }

@@ -51,7 +51,7 @@ package com.educonnect.chat.config;
 //                System.out.println("STOMP Command: " + accessor.getCommand());
 //                System.out.println("Destination: " + accessor.getDestination());
 //                System.out.println("Session ID: " + accessor.getSessionId());
-////                System.out.println("User: " + (accessor.getUser() != null ? accessor.getUser().getName() : "null"));
+//                System.out.println("User: " + (accessor.getUser() != null ? accessor.getUser().getName() : "null"));
 //
 //                Principal user = (Principal) accessor.getSessionAttributes().get("user");
 //                accessor.setUser(user);
@@ -162,7 +162,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             protected Principal determineUser(ServerHttpRequest request,
                                               WebSocketHandler wsHandler,
                                               Map<String, Object> attributes) {
-                return (Principal) attributes.get("user"); // ✅ finally sets it in Spring
+                return (Principal) attributes.get("user");
             }
         };
     }

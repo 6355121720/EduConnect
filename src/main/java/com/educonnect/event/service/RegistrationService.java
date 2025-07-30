@@ -4,8 +4,10 @@ package com.educonnect.event.service;
 import com.educonnect.event.dto.response.RegistrationDTO;
 import com.educonnect.event.model.Events;
 import com.educonnect.event.model.Registration;
+import com.educonnect.event.model.Ticket;
 import com.educonnect.event.repo.EventsRepo;
 import com.educonnect.event.repo.RegistrationRepo;
+import com.educonnect.event.repo.TickerRepo;
 import com.educonnect.exceptionhandling.exception.EventNotFoundException;
 import com.educonnect.user.entity.Users;
 import com.educonnect.user.repository.UserRepository;
@@ -27,6 +29,9 @@ public class RegistrationService {
     @Autowired
     private UserRepository uRepo;
 
+    @Autowired
+    private TickerRepo trepo;
+
     public Registration userRegister(Long eventId , UUID userId) {
         Events event = eRepo.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event Not Found"));
 
@@ -41,7 +46,11 @@ public class RegistrationService {
         }
 
         Registration registration = new Registration(event , user);
-        return rRepo.save(registration);
+
+        Ticket ticket = new Ticket(true ,  event , user, registration);
+        rRepo.save(registration);
+        trepo.save(ticket);
+        return registration;
     }
 
     public void removeRegistration(Long eventId , UUID userId){

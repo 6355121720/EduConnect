@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Repository
@@ -21,4 +22,8 @@ public interface RegistrationRepo extends JpaRepository<Registration, Long> {
     List<Registration> findByUser(Users user);
 
     List<Registration> findByEvent(Events event);
+
+    boolean existsByUserIdAndEventId(UUID userId, Long eventId);
+
+    Registration findByUserIdAndEventId(UUID userId, Long eventId);
 }
