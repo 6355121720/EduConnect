@@ -1,10 +1,7 @@
 package com.educonnect.event.model;
-
-
 import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.Date;
 import java.util.List;
 

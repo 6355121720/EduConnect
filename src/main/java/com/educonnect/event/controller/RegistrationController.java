@@ -29,7 +29,6 @@ public class RegistrationController {
     @Autowired
     private AuthService authService;
 
-    // Update your controller methods to return RegistrationDTO instead of Registration
     @PostMapping("/register/{eventId}")
     @CacheEvict(value = {"events", "eventSearch"}, allEntries = true)
     public ResponseEntity<RegistrationDTO> registerForEvent(@PathVariable Long eventId, HttpServletRequest request, HttpServletResponse response) {
@@ -41,7 +40,6 @@ public class RegistrationController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-        // ... rest of exception handling
     }
 
     @DeleteMapping("/events/{eventId}/unregister")

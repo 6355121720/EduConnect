@@ -159,7 +159,7 @@ public class EventService {
     }
 
     public List<Events> getUpcomingEvents(){
-        return erepo.findByDateAfterOrderByDateDesc(new Date());
+        return erepo.findByDateAfterOrderByDateAsc(new Date());
     }
 
 //    public List<Events> findEventByCreator(String username){

@@ -66,7 +66,6 @@ public class EventController {
         Pageable pageable = PageRequest.of(page , size , Sort.by(direction, sortBy));
 
 
-//        List<Events> events = eventService.getAllEvents();
         PagedResponse<EventResponseDto> response = eventService.getAllEvents(pageable);
         return ResponseEntity.ok(response);
     }
