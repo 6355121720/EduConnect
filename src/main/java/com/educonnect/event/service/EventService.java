@@ -12,6 +12,7 @@ import com.educonnect.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -29,14 +30,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EventService {
 
-    @Autowired
-    private EventsRepo erepo;
+    private final EventsRepo erepo;
 
-    @Autowired
-    private RegistrationRepo repo;
+    private final RegistrationRepo repo;
 
-    @Autowired
-    private UserRepository uRepo;
+    private final UserRepository uRepo;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
 
 
 
@@ -77,6 +77,10 @@ public class EventService {
 
         validateEventData(event);
 
+        System.out.println("prit prit ************** jsdhfuia hgfewgcfewgy cfbj gfuyewjf hsuj");
+        applicationEventPublisher.publishEvent(
+                new EventCreatedDomainEvent(event.getId(), userId)
+        );
 
         return erepo.save(event);
     }

@@ -39,6 +39,8 @@ public class ChatController {
         FindResponse sender = userService.find(request.getSenderUname());
         FindResponse receiver = userService.find(request.getReceiverUname());
 
+        System.out.println("wwehuiweguiwe gwhiuw gd7pwegiuwgduwge g");
+
         messagingTemplate.convertAndSendToUser(
                 request.getReceiverUname(),
                 "/queue/message",

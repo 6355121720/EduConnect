@@ -10,8 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
-//http://localhost:8081/pdf/invoice?registrationId=37
-
 @RestController
 @RequestMapping("/api/pdf")
 public class PdfController {

@@ -120,6 +120,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .addInterceptors(jwtHandshakeInterceptor)
                 .setHandshakeHandler(defaultHandshakeHandler())
                 .withSockJS();
+//        registry
+//                .addEndpoint("/ws-notifications")
+//                .setAllowedOriginPatterns("*")
+//                .addInterceptors(jwtHandshakeInterceptor)
+//                .setHandshakeHandler(defaultHandshakeHandler())
+//                .withSockJS();
     }
 
 //    @Override
