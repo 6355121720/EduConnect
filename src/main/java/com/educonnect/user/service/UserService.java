@@ -171,4 +171,8 @@ public class UserService {
         return users;
     }
 
+    public Users findById(UUID id){
+        return userRepository.findById(id).orElseThrow(() -> new InvalidCredentialsException("User not found with given id."));
+    }
+
 }

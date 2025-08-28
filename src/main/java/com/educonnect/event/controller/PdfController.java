@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/pdf")
+@RequestMapping("/api/pdf")
 public class PdfController {
     private final PdfService pdfService;
 
@@ -22,7 +22,7 @@ public class PdfController {
         this.pdfService = pdfService;
     }
 
-    @GetMapping("/invoice")
+    @GetMapping("/download_ticket")
     public ResponseEntity<byte[]> getInvoicePdf(
             @RequestParam Long registrationId) {
         try {
