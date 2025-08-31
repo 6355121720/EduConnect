@@ -36,12 +36,12 @@ public class NotificationService {
         repo.save(n);
 
         NotificationResponse response = toDto(n);
-        System.out.println("viral jsdhfuia hgfewgcfewgy cfbj gfuyewjf hsuj" + recipient.getUsername());
         messagingTemplate.convertAndSendToUser(
                 recipient.getUsername(),
                 "/queue/notifications",
                 response
         );
+        System.out.println("viral jsdhfuia hgfewgcfewgy cfbj gfuyewjf hsuj" + recipient.getUsername());
     }
 
     public Page<NotificationResponse> listNotifications(UUID recipientId, int page, int size) {
