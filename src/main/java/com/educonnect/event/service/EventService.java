@@ -77,7 +77,6 @@ public class EventService {
 
         validateEventData(event);
 
-        System.out.println("prit prit ************** jsdhfuia hgfewgcfewgy cfbj gfuyewjf hsuj");
         applicationEventPublisher.publishEvent(
                 new EventCreatedDomainEvent(event.getId(), userId)
         );

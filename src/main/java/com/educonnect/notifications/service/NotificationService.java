@@ -41,7 +41,6 @@ public class NotificationService {
                 "/queue/notifications",
                 response
         );
-        System.out.println("viral jsdhfuia hgfewgcfewgy cfbj gfuyewjf hsuj" + recipient.getUsername());
     }
 
     public Page<NotificationResponse> listNotifications(UUID recipientId, int page, int size) {
