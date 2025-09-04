@@ -14,6 +14,7 @@ import com.educonnect.qna.repository.QuestionRepository;
 import com.educonnect.qna.repository.VoteRepository;
 import com.educonnect.user.entity.Users;
 import com.educonnect.user.repository.UserRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -26,19 +27,22 @@ public class AnswerService {
     private final VoteRepository voteRepository;
     private final QuestionRepository questionRepository;
     private final AnswerMapper answerMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AnswerService(
             AnswerRepository answerRepository,
             UserRepository userRepository,
             VoteRepository voteRepository,
             QuestionRepository questionRepository,
-            AnswerMapper answerMapper
+            AnswerMapper answerMapper,
+            ApplicationEventPublisher eventPublisher
     ){
         this.answerRepository = answerRepository;
         this.userRepository = userRepository;
         this.voteRepository = voteRepository;
         this.questionRepository = questionRepository;
         this.answerMapper = answerMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     public void voteAnswer(VoteAnswerRequest request){
@@ -76,9 +80,17 @@ public class AnswerService {
                 .description(request.getDescription())
                 .build();
 
-        Answer answer1 = answerRepository.save(answer);
+        Answer savedAnswer = answerRepository.save(answer);
 
-        AnswerDto answerDto = answerMapper.toDto(answer1);
+        eventPublisher.publishEvent(new AnswerCreatedDomainEvent(
+            savedAnswer.getId(),
+            question.getId(),
+            author.getId(),
+            author.getFullName(),
+            question.getAuthor().getId()
+        ));
+
+        AnswerDto answerDto = answerMapper.toDto(savedAnswer);
 
         return answerDto;
     }
