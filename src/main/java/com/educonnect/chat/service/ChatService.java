@@ -21,6 +21,7 @@ import com.educonnect.exceptionhandling.exception.BusinessRuleViolationException
 import com.educonnect.exceptionhandling.exception.InvalidCredentialsException;
 import com.educonnect.user.entity.Users;
 import com.educonnect.user.repository.UserRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +52,8 @@ public class ChatService {
 
     private final GroupRequestJoinMapper groupRequestJoinMapper;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     public ChatService(
             UserRepository userRepository,
             PrivateChatMessageRepository privateChatMessageRepository,
@@ -60,7 +63,8 @@ public class ChatService {
             EmailService emailService,
             GroupChatMessageMapper groupChatMessageMapper,
             GroupChatMapper groupChatMapper,
-            GroupRequestJoinMapper groupRequestJoinMapper
+            GroupRequestJoinMapper groupRequestJoinMapper,
+            ApplicationEventPublisher eventPublisher
     ){
         this.privateChatMessageRepository = privateChatMessageRepository;
         this.groupChatRepository = groupChatRepository;
@@ -71,6 +75,7 @@ public class ChatService {
         this.groupChatMessageMapper = groupChatMessageMapper;
         this.groupChatMapper = groupChatMapper;
         this.groupRequestJoinMapper = groupRequestJoinMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     public PrivateChatMessage privateChat(PrivateChatRequest request){
@@ -131,6 +136,14 @@ public class ChatService {
             groupRequestJoin.setInvited(true);
             groupRequestJoin.setSender(user);
             groupRequestJoinRepository.save(groupRequestJoin);
+
+            // Publish group invitation event for notifications
+            eventPublisher.publishEvent(new GroupInvitationCreatedDomainEvent(
+                request.getName(),
+                user.getId(),
+                admin.getId(),
+                admin.getFullName()
+            ));
         }
 
         GroupChatDTO groupChatDTO = groupChatMapper.toDto(groupChat1);
@@ -282,6 +295,14 @@ public class ChatService {
                         .sender(receiver)
                         .build();
                 groupRequestJoinRepository.save(groupRequestJoin);
+
+                // Publish group invitation event for notifications
+                eventPublisher.publishEvent(new GroupInvitationCreatedDomainEvent(
+                    groupChat.getName(),
+                    receiver.getId(),
+                    groupChat.getAdmin().getId(),
+                    groupChat.getAdmin().getFullName()
+                ));
             }
         }
     }
