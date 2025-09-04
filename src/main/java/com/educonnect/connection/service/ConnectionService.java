@@ -114,7 +114,7 @@ public class ConnectionService {
         }
 
         applicationEventPublisher.publishEvent(
-                new ConnectionCreatedDomainEvent(receiver.getId() , sender.get().getId() , "Request_Accepted" , "Connection Request Accept By : " + sender.get().getFullName() , "/profile/" + sender.get().getId())
+                new ConnectionCreatedDomainEvent(sender.get().getId() ,receiver.getId() , "Request_Accepted" , "Connection Request Accept By : " + receiver.getFullName() , "/profile/" + receiver.getId())
         );
 
         connectionRepository.update(sender.get(), receiver, Connection.RequestStatus.ACCEPTED);
@@ -145,7 +145,7 @@ public class ConnectionService {
             throw new BusinessRuleViolationException("Request doesn't exists.");
         }
         applicationEventPublisher.publishEvent(
-                new ConnectionCreatedDomainEvent( sender.get().getId() ,receiver.getId()  , "Request_Rejected" , "Connection Request Reject By : " + sender.get().getFullName() , "/profile/" + sender.get().getId())
+                new ConnectionCreatedDomainEvent( sender.get().getId() ,receiver.getId()  , "Request_Rejected" , "Connection Request Reject By : " + receiver.getFullName() , "/profile/" + receiver.getId())
         );
         connectionRepository.deleteById(connection.get().getId());
 
