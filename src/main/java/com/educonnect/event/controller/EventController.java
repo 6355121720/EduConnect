@@ -24,7 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,11 +42,6 @@ public class EventController {
     @Autowired
     private AuthService authService;
 
-//    public EventController(EventService eventService, AuthService authService) {
-//        this.eventService = eventService;
-//        this.authService = authService;
-//    }
-
 
     @Operation(summary = "Get all events with pagination", description = "Retrieve paginated list of events")
     @GetMapping("/")
@@ -54,7 +49,7 @@ public class EventController {
     public ResponseEntity<PagedResponse<EventResponseDto>> getAllEvents(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "date") String sortBy,
+            @RequestParam(defaultValue = "startDate") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDirection
     ){
 
@@ -110,10 +105,10 @@ public class EventController {
     }
 
     @GetMapping("/dateRange")
-    public ResponseEntity<List<EventResponseDto>> getEventsByDateRange(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-                                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+    public ResponseEntity<List<EventResponseDto>> getEventsByDateRange(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDateTime startDate,
+                                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDateTime endDate) {
 
-        if(startDate == null || endDate == null || startDate.after(endDate)) {
+        if(startDate == null || endDate == null || startDate.isAfter(endDate)) {
             return ResponseEntity.badRequest().build();
         }
 

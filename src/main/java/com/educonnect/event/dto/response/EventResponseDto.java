@@ -2,6 +2,8 @@ package com.educonnect.event.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -12,7 +14,7 @@ public class EventResponseDto {
     private String title;
     private String description;
     private String university;
-    private Date date;
+    private LocalDateTime date;
     private int maxParticipants;
     private int currentParticipants;
     private String createdByUsername;

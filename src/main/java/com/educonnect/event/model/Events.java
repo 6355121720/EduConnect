@@ -1,8 +1,10 @@
 package com.educonnect.event.model;
+
 import com.educonnect.user.entity.Users;
+import com.educonnect.event.enums.EventStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -10,7 +12,7 @@ import java.util.List;
 @Data
 @Getter
 @Setter
-@Entity// Exclude relationships
+@Entity
 @Table(name = "events")
 public class Events {
 
@@ -21,32 +23,61 @@ public class Events {
     @Column(nullable = false)
     private String title;
 
-    @Column(length = 1000)
+    @Column(length = 2000)
     private String description;
+
+    @Column(nullable = false)
+    private LocalDateTime startDate;
+
+    @Column(nullable = false)
+    private LocalDateTime endDate;
+
+    @Column(nullable = false)
+    private String location; // Physical address or online link
+
+    private String bannerUrl; // Optional banner image
+
+    private String attachmentUrl; // Optional attachment file
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EventStatus status = EventStatus.DRAFT;
 
     private String university;
 
     @Column(nullable = false)
-    private Date date;
-
-    @Column(nullable = false)
-    private int maxParticipants;
-
-    @Column(nullable = false)
-    private Date createdAt;
+    private Integer maxParticipants;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by" , nullable = false )
+    @JoinColumn(name = "created_by", nullable = false)
     private Users createdBy;
 
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL , fetch = FetchType.LAZY)
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EventRole> eventRoles;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<RegistrationForm> registrationForms;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Registration> registrations;
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = new Date();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Business logic methods
     public int getCurrentParticipantCount() {
         return registrations != null ? registrations.size() : 0;
     }
@@ -56,7 +87,14 @@ public class Events {
     }
 
     public String getEventName() {
-
         return title != null ? title : "No Title";
+    }
+
+    public boolean isPublished() {
+        return EventStatus.PUBLISHED.equals(this.status);
+    }
+
+    public boolean isCancelled() {
+        return EventStatus.CANCELLED.equals(this.status);
     }
 }
