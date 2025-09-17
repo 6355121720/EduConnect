@@ -1,11 +1,13 @@
 package com.educonnect.event.model;
 
+import com.educonnect.event.enums.RegistrationStatus;
 import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -30,7 +32,15 @@ public class Registration {
     private Users user;
 
     @Column(nullable = false)
-    private Date registrationDate;
+    private LocalDateTime registrationDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RegistrationStatus status = RegistrationStatus.CONFIRMED;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "form_response_id")
+    private FormResponse formResponse;
 
     @OneToOne(mappedBy = "registration", cascade = CascadeType.ALL, orphanRemoval = true)
     private Ticket ticket;
@@ -42,7 +52,7 @@ public class Registration {
 
     @PrePersist
     protected void onCreate() {
-        this.registrationDate = new Date();
+        this.registrationDate = LocalDateTime.now();
     }
 
 

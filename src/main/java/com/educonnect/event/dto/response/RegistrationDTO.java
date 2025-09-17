@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -16,14 +17,14 @@ public class RegistrationDTO {
     private String eventTitle;
     private String eventDescription;
     private String university;
-    private Date eventDate;
+    private LocalDateTime eventDate;
     private int maxParticipants;
     private int currentParticipants;
     private UUID userId;
     private String userFullName;
 //    private String userLastName;
     private String userEmail;
-    private Date registrationDate;
+    private LocalDateTime registrationDate;
 
     // Constructor to create DTO from Registration entity
     public RegistrationDTO(Registration registration) {
@@ -32,7 +33,7 @@ public class RegistrationDTO {
         this.eventTitle = registration.getEvent().getTitle();
         this.eventDescription = registration.getEvent().getDescription();
         this.university = registration.getEvent().getUniversity();
-        this.eventDate = registration.getEvent().getDate();
+        this.eventDate = registration.getEvent().getStartDate();
         this.maxParticipants = registration.getEvent().getMaxParticipants();
         this.currentParticipants = registration.getEvent().getCurrentParticipantCount();
         this.userId = registration.getUser().getId();

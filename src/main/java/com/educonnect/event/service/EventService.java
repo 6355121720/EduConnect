@@ -2,6 +2,8 @@ package com.educonnect.event.service;
 
 import com.educonnect.event.dto.response.EventResponseDto;
 import com.educonnect.event.dto.response.PagedResponse;
+import com.educonnect.event.enums.EventRoleType;
+import com.educonnect.event.model.EventRole;
 import com.educonnect.event.model.Events;
 import com.educonnect.event.repo.EventsRepo;
 import com.educonnect.event.repo.RegistrationRepo;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -74,6 +77,18 @@ public class EventService {
 
         event.setCreatedBy(creator);
 
+        EventRole creatorRole = EventRole.builder()
+                .event(event)
+                .user(creator)
+                .role(EventRoleType.CREATOR)
+                .build();
+
+
+        if(event.getEventRoles() != null){
+            event.getEventRoles().add(creatorRole);
+        } else {
+            event.setEventRoles(List.of(creatorRole));
+        }
 
         validateEventData(event);
 
@@ -89,12 +104,11 @@ public class EventService {
             throw new IllegalArgumentException("Event title cannot be empty");
         }
 
-        if(event.getDate() == null){
-            throw new IllegalArgumentException("Event date cannot be null");
+        if(event.getStartDate() == null || event.getEndDate() == null){
+            throw new IllegalArgumentException("Event start date and end date cannot be null");
         }
-        if(event.getDate().before(new Date()))
-        {
-            throw new IllegalArgumentException("Event date cannot be in the past");
+        if(event.getStartDate().isBefore(LocalDateTime.now()) || event.getEndDate().isBefore(LocalDateTime.now())){
+            throw new IllegalArgumentException("Event start date and end date cannot be in the past");
         }
 
         if(event.getMaxParticipants() <= 0){
@@ -114,7 +128,10 @@ public class EventService {
         crrEvent.setTitle(newEvent.getTitle());
         crrEvent.setDescription(newEvent.getDescription());
         crrEvent.setUniversity(newEvent.getUniversity());
-        crrEvent.setDate(newEvent.getDate());
+        crrEvent.setStartDate(newEvent.getStartDate());
+        crrEvent.setEndDate(newEvent.getEndDate());
+        crrEvent.setLocation(newEvent.getLocation());
+//        crrEvent.setBannerUrl(newEvent.getBannerUrl());
         crrEvent.setMaxParticipants(newEvent.getMaxParticipants());
 
         validateEventData(crrEvent);
@@ -162,7 +179,7 @@ public class EventService {
     }
 
     public List<Events> getUpcomingEvents(){
-        return erepo.findByDateAfterOrderByDateAsc(new Date());
+        return erepo.findByStartDateAfterOrderByStartDateDesc(LocalDateTime.now());
     }
 
 //    public List<Events> findEventByCreator(String username){
@@ -174,11 +191,11 @@ public class EventService {
 //    }
 
     public List<Events> getPastEvents(){
-        return erepo.findByDateBeforeOrderByDateDesc(new Date());
+        return erepo.findByStartDateBeforeOrderByStartDateDesc(LocalDateTime.now());
     }
 
-    public List<Events> getEventsByDateRange(Date startDate, Date endDate){
-            return erepo.findByDateBetweenOrderByDateAsc(startDate, endDate);
+    public List<Events> getEventsByDateRange(LocalDateTime startDate, LocalDateTime endDate){
+            return erepo.findByStartDateBetweenOrderByStartDateAsc(startDate, endDate);
     }
 
 
@@ -210,7 +227,7 @@ public class EventService {
         Events event = erepo.findById(eventId).orElseThrow(() ->
                 new IllegalArgumentException("Event not found with id: " + eventId)
         );
-        return event.getDate().after(new Date());
+        return event.getStartDate().isAfter(LocalDateTime.now());
     }
     
     
@@ -231,7 +248,7 @@ public class EventService {
     }
 
     public long getTotalActiveEventsCount() {
-        return erepo.countByDateAfter(new Date());
+        return erepo.countByStartDateAfter(LocalDateTime.now());
     }
 
     public long getEventsByCreatorCount(UUID creatorId) {
