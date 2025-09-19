@@ -2,7 +2,6 @@ package com.educonnect.event.service;
 
 import com.educonnect.event.enums.EventRoleType;
 import com.educonnect.event.model.EventRole;
-import com.educonnect.event.model.Events;
 import com.educonnect.event.repo.EventRoleRepo;
 import com.educonnect.event.repo.EventsRepo;
 import com.educonnect.event.repo.RegistrationRepo;

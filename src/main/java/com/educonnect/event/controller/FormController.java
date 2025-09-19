@@ -7,6 +7,7 @@ import com.educonnect.event.dto.request.UpdateFormRequestDTO;
 import com.educonnect.event.dto.response.CreateFormResponseDTO;
 import com.educonnect.event.service.FormService;
 import com.educonnect.exceptionhandling.exception.EventNotFoundException;
+import com.educonnect.exceptionhandling.exception.NoActiveFormsException;
 import com.educonnect.user.entity.Users;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,7 +56,7 @@ public class FormController {
         }
     }
 
-//    this Api for Admin Only not for user
+//    this Api for Admin Only, not for user
     @GetMapping("/")
     public ResponseEntity<List<CreateFormResponseDTO>> getAllForms(
             @PathVariable Long eventId,
@@ -137,19 +138,20 @@ public class FormController {
 
 
     @GetMapping("/active")
-    public ResponseEntity<CreateFormResponseDTO> getActiveForm(
+    public ResponseEntity<List<CreateFormResponseDTO>> getActiveForm(
             @PathVariable Long eventId,
             HttpServletRequest request,
             HttpServletResponse response
     ) {
         try {
             Users currentUser = authService.me(request, response);
-            CreateFormResponseDTO activeForm = formService.getActiveForm(eventId, currentUser);
+
+            List<CreateFormResponseDTO> activeForm = formService.getActiveForm(eventId, currentUser);
 
             log.info("Retrieved active form for event {} by user {}", eventId, currentUser.getId());
             return ResponseEntity.ok(activeForm);
 
-        } catch (IllegalArgumentException e) {
+        }catch (NoActiveFormsException e) {
             log.error("No active form found for event {}: {}", eventId, e.getMessage());
             return ResponseEntity.notFound().build();
         } catch (EventNotFoundException e) {
@@ -160,13 +162,4 @@ public class FormController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-
-
-
 }
-
-
-
-
-
