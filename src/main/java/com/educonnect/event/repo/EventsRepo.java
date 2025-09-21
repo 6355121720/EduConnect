@@ -36,4 +36,5 @@ public interface EventsRepo extends JpaRepository<Events, Long> {
 
     long countByCreatedBy(Users creator);
 
+    List<Events> findByDateAfterOrderByDateAsc(Date date);
 }

@@ -15,6 +15,7 @@ import com.educonnect.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,11 +33,14 @@ public class ConnectionService {
 
     private final AuthService authService;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     @Autowired
-    public ConnectionService(ConnectionRepository connectionRepository, UserRepository userRepository, AuthService authService){
+    public ConnectionService(ConnectionRepository connectionRepository, UserRepository userRepository, AuthService authService , ApplicationEventPublisher applicationEventPublisher){
         this.connectionRepository = connectionRepository;
         this.userRepository = userRepository;
         this.authService = authService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     public void sendRequest(HttpServletRequest request, HttpServletResponse response, SendRequest requestData){
@@ -69,6 +73,11 @@ public class ConnectionService {
                 .receiver(receiver.get())
                 .status(Connection.RequestStatus.PENDING)
                 .build();
+
+        // Publish connection request event for notifications
+        applicationEventPublisher.publishEvent(
+                new ConnectionRequestCreatedDomainEvent(sender.getId(), receiver.get().getId(), sender.getFullName())
+        );
 
         connectionRepository.save(connection);
     }
@@ -106,6 +115,10 @@ public class ConnectionService {
             throw new BusinessRuleViolationException("Pending request not found.");
         }
 
+        applicationEventPublisher.publishEvent(
+                new ConnectionCreatedDomainEvent(sender.get().getId() ,receiver.getId() , "Request_Accepted" , "Connection Request Accept By : " + receiver.getFullName() , "/profile/" + receiver.getId())
+        );
+
         connectionRepository.update(sender.get(), receiver, Connection.RequestStatus.ACCEPTED);
     }
 
@@ -133,7 +146,9 @@ public class ConnectionService {
         if (connection.isEmpty()){
             throw new BusinessRuleViolationException("Request doesn't exists.");
         }
-
+        applicationEventPublisher.publishEvent(
+                new ConnectionCreatedDomainEvent( sender.get().getId() ,receiver.getId()  , "Request_Rejected" , "Connection Request Reject By : " + receiver.getFullName() , "/profile/" + receiver.getId())
+        );
         connectionRepository.deleteById(connection.get().getId());
 
     }

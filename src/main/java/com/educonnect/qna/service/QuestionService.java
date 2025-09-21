@@ -18,6 +18,7 @@ import com.educonnect.qna.repository.VoteRepository;
 import com.educonnect.user.entity.Users;
 import com.educonnect.user.repository.UserRepository;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class QuestionService {
     private final QuestionMapper questionMapper;
     private final AnswerRepository answerRepository;
     private final VoteRepository voteRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public QuestionService(
             QuestionRepository questionRepository,
@@ -43,13 +45,15 @@ public class QuestionService {
             UserRepository userRepository,
             QuestionMapper questionMapper,
             AnswerRepository answerRepository,
-            VoteRepository voteRepository){
+            VoteRepository voteRepository,
+            ApplicationEventPublisher eventPublisher){
         this.questionRepository = questionRepository;
         this.tagRepository = tagRepository;
         this.userRepository = userRepository;
         this.questionMapper = questionMapper;
         this.answerRepository = answerRepository;
         this.voteRepository = voteRepository;
+        this.eventPublisher = eventPublisher;
     }
 
 
@@ -88,8 +92,14 @@ public class QuestionService {
 
         question.setTags(tags);
 
-        questionRepository.save(question);
+        Question savedQuestion = questionRepository.save(question);
 
+        eventPublisher.publishEvent(new QuestionCreatedDomainEvent(
+            savedQuestion.getId(),
+            author.getId(),
+            author.getFullName(),
+            savedQuestion.getTitle()
+        ));
     }
 
     public List<MyQuestionDto> myQuestions(Users user){

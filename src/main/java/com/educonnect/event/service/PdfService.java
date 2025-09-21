@@ -39,7 +39,6 @@ public class PdfService {
         Ticket ticket = tickerRepo.findById(ticketID)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
-        // Extract required data from the ticket and related entities
         String name = ticket.getUser().getFullName();
         UUID userId = ticket.getUser().getId();
         Long eventId = ticket.getEvent().getId();

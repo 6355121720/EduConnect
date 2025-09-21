@@ -171,4 +171,17 @@ public class UserService {
         return users;
     }
 
+    public Users findById(UUID id){
+        return userRepository.findById(id).orElseThrow(() -> new InvalidCredentialsException("User not found with given id."));
+    }
+
+    /**
+     * Stub method to simulate fetching group members by group name.
+     * Replace with actual implementation when available.
+     */
+    public List<FindResponse> findGroupMembers(String groupName) {
+        // TODO: Replace with actual group member fetching logic
+        // For now, return an empty list or mock data
+        return new ArrayList<>();
+    }
 }
