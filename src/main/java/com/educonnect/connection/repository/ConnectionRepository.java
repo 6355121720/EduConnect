@@ -4,7 +4,6 @@ import com.educonnect.connection.dto.general.ConnectedDTO;
 import com.educonnect.connection.entity.Connection;
 import com.educonnect.user.entity.Users;
 import jakarta.transaction.Transactional;
-import org.apache.catalina.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
