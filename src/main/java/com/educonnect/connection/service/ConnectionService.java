@@ -25,6 +25,7 @@ import java.util.UUID;
 public class ConnectionService {
 
     
+    
     private final ConnectionRepository connectionRepository;
 
     private final UserRepository userRepository;
