@@ -199,7 +199,7 @@ public class EventService {
     }
 
 
-    public int getEventRegistrationCount(Long eventId){
+    public long getEventRegistrationCount(Long eventId){
         Events event = erepo.findById(eventId).orElseThrow(() ->
                 new IllegalArgumentException("Event not found with id: " + eventId)
         );
@@ -207,7 +207,7 @@ public class EventService {
         return event.getCurrentParticipantCount();
     }
 
-    public int getAvailableSpots(Long eventId){
+    public Long getAvailableSpots(Long eventId){
         Events event = erepo.findById(eventId).orElseThrow(() ->
                 new IllegalArgumentException("Event not found with id: " + eventId)
         );

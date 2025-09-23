@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class FormService {
+public class FormCreateService {
 
     private final EventsRepo eventsRepo;
     private final RegistrationFormRepo registrationFormRepo;

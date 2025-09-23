@@ -5,7 +5,7 @@ import com.educonnect.auth.service.AuthService;
 import com.educonnect.event.dto.request.CreateFormRequestDTO;
 import com.educonnect.event.dto.request.UpdateFormRequestDTO;
 import com.educonnect.event.dto.response.CreateFormResponseDTO;
-import com.educonnect.event.service.FormService;
+import com.educonnect.event.service.FormCreateService;
 import com.educonnect.exceptionhandling.exception.EventNotFoundException;
 import com.educonnect.exceptionhandling.exception.NoActiveFormsException;
 import com.educonnect.user.entity.Users;
@@ -24,14 +24,14 @@ import java.util.List;
 @CrossOrigin
 @Slf4j
 @Tag(name = "Forms", description = "Form management APIs")
-public class FormController {
+public class FormCreateController {
 
-    private final FormService  formService;
+    private final FormCreateService formCreateService;
 
     private final AuthService  authService; // helper to get current user id
 
-    public FormController(FormService formService, AuthService authService) {
-        this.formService = formService;
+    public FormCreateController(FormCreateService formCreateService, AuthService authService) {
+        this.formCreateService = formCreateService;
         this.authService = authService;
     }
 
@@ -44,7 +44,7 @@ public class FormController {
     ){
         try {
             Users currentUser = authService.me(request, response);
-            CreateFormResponseDTO savedForm = formService.createForm(eventId, formRequest, currentUser);
+            CreateFormResponseDTO savedForm = formCreateService.createForm(eventId, formRequest, currentUser);
             log.info("Form created successfully for event {} by user {}", eventId, currentUser.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(savedForm);
         } catch (IllegalArgumentException e) {
@@ -66,7 +66,7 @@ public class FormController {
         try {
             Users currentUser = authService.me(request, response);
 
-            List<CreateFormResponseDTO> forms = formService.getAllFormsByEventId(eventId , currentUser);
+            List<CreateFormResponseDTO> forms = formCreateService.getAllFormsByEventId(eventId , currentUser);
             log.info("Retrieved {} forms for event {} by user {}",
                     forms.size(), eventId, currentUser.getId());
             return ResponseEntity.ok(forms);
@@ -90,7 +90,7 @@ public class FormController {
     ) {
         try {
             Users currentUser = authService.me(request, response);
-            CreateFormResponseDTO updatedForm = formService.updateForm(eventId, formId, updateRequest, currentUser);
+            CreateFormResponseDTO updatedForm = formCreateService.updateForm(eventId, formId, updateRequest, currentUser);
 
             log.info("Form {} updated successfully for event {} by user {}", formId, eventId, currentUser.getId());
 
@@ -119,7 +119,7 @@ public class FormController {
     ) {
         try {
             Users currentUser = authService.me(request, response);
-            formService.deleteForm(eventId, formId, currentUser);
+            formCreateService.deleteForm(eventId, formId, currentUser);
 
             log.info("Form {} deleted successfully for event {} by user {}", formId, eventId, currentUser.getId());
 
@@ -146,7 +146,7 @@ public class FormController {
         try {
             Users currentUser = authService.me(request, response);
 
-            List<CreateFormResponseDTO> activeForm = formService.getActiveForm(eventId, currentUser);
+            List<CreateFormResponseDTO> activeForm = formCreateService.getActiveForm(eventId, currentUser);
 
             log.info("Retrieved active form for event {} by user {}", eventId, currentUser.getId());
             return ResponseEntity.ok(activeForm);

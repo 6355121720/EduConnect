@@ -39,8 +39,23 @@ public class FormResponse {
     @OneToMany(mappedBy = "response", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FormFieldResponse> fieldResponses;
 
+    @OneToOne(mappedBy = "formResponse", fetch = FetchType.LAZY)
+    private Registration registration;
+
+
     @PrePersist
     protected void onCreate() {
         this.submittedAt = LocalDateTime.now();
     }
+
+    // Business logic methods
+    public boolean hasRegistration() {
+        return registration != null;
+    }
+
+    public Long getEventId() {
+        return form != null && form.getEvent() != null ? form.getEvent().getId() : null;
+    }
+
+
 }

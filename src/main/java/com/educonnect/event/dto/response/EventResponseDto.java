@@ -15,8 +15,8 @@ public class EventResponseDto {
     private String description;
     private String university;
     private LocalDateTime date;
-    private int maxParticipants;
-    private int currentParticipants;
+    private Long maxParticipants;
+    private Long currentParticipants;
     private String createdByUsername;
     private UUID createdById;
     private  String createdByProfilePictureUrl;

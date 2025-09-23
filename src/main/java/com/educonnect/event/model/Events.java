@@ -46,7 +46,7 @@ public class Events {
     private String university;
 
     @Column(nullable = false)
-    private Integer maxParticipants;
+    private Long maxParticipants;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
@@ -78,7 +78,7 @@ public class Events {
     }
 
     // Business logic methods
-    public int getCurrentParticipantCount() {
+    public long getCurrentParticipantCount() {
         return registrations != null ? registrations.size() : 0;
     }
 
