@@ -204,9 +204,9 @@ public class EventController {
     }
 
     @GetMapping("/registration-count/{eventId}")
-    public ResponseEntity<Integer> getEventRegistrationCount(@PathVariable Long eventId) {
+    public ResponseEntity<Long> getEventRegistrationCount(@PathVariable Long eventId) {
         try {
-            int count = eventService.getEventRegistrationCount(eventId);
+            long count = eventService.getEventRegistrationCount(eventId);
             return ResponseEntity.ok(count);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
@@ -214,9 +214,9 @@ public class EventController {
     }
 
     @GetMapping("/available-spots/{eventId}")
-    public ResponseEntity<Integer> getAvailableSpots(@PathVariable Long eventId) {
+    public ResponseEntity<Long> getAvailableSpots(@PathVariable Long eventId) {
         try {
-            int availableSpots = eventService.getAvailableSpots(eventId);
+            long availableSpots = eventService.getAvailableSpots(eventId);
             return ResponseEntity.ok(availableSpots);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();

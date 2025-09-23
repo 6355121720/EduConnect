@@ -26,4 +26,12 @@ public interface RegistrationRepo extends JpaRepository<Registration, Long> {
     boolean existsByUserIdAndEventId(UUID userId, Long eventId);
 
     Registration findByUserIdAndEventId(UUID userId, Long eventId);
+
+    default boolean existsByUserIdAndEventIdAndisformSubmittedTrue(UUID id, Long eventId) {
+        return false;
+    }
+
+    long countByEventAndFormSubmittedTrue(Events event);
+
+    Optional<Object> findByEventAndUserAndFormSubmittedIsTrue(Events event, Users user);
 }

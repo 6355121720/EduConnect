@@ -18,8 +18,8 @@ public class RegistrationDTO {
     private String eventDescription;
     private String university;
     private LocalDateTime eventDate;
-    private int maxParticipants;
-    private int currentParticipants;
+    private Long maxParticipants;
+    private Long currentParticipants;
     private UUID userId;
     private String userFullName;
 //    private String userLastName;

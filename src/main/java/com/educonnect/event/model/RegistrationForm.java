@@ -1,5 +1,6 @@
 package com.educonnect.event.model;
 
+import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,8 +34,15 @@ public class RegistrationForm {
     private String title;
 
     @Column(nullable = false)
+    private LocalDateTime Deadline;
+
+    @Column(nullable = false)
     private Boolean isActive = true;
 
+    private UUID inActivationBy;
+
+
+    private LocalDateTime inActivationAt;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -56,6 +66,8 @@ public class RegistrationForm {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+
 
     public int getResponseCount() {
         return responses != null ? responses.size() : 0;
