@@ -14,7 +14,7 @@ public class EventMapper {
                 event.getTitle(),
                 event.getDescription(),
                 event.getUniversity(),
-                event.getDate(),
+                event.getStartDate(),
                 event.getMaxParticipants(),
                 event.getCurrentParticipantCount(),
                 event.getCreatedBy().getUsername(),
