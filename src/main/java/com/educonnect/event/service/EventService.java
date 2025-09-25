@@ -212,7 +212,7 @@ public class EventService {
                 new IllegalArgumentException("Event not found with id: " + eventId)
         );
 
-        return event.getMaxParticipants() - event.getCurrentParticipantCount();
+        return event.getMaxParticipants() - repo.countByEventIdAndFormSubmittedTrue(eventId);
     }
 
     public boolean isEventFull(Long eventId){

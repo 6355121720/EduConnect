@@ -1,11 +1,11 @@
 package com.educonnect.event.dto.response;
+
 import com.educonnect.event.model.Registration;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 @Data
@@ -17,29 +17,42 @@ public class RegistrationDTO {
     private String eventTitle;
     private String eventDescription;
     private String university;
-    private LocalDateTime eventDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private String location;
+    private String bannerUrl;
+    private String attachmentUrl;
+    private String status;
     private Long maxParticipants;
     private Long currentParticipants;
     private UUID userId;
     private String userFullName;
-//    private String userLastName;
     private String userEmail;
+    private String createdByUsername;
+    private UUID createdById;
+    private String createdByProfilePictureUrl;
     private LocalDateTime registrationDate;
 
-    // Constructor to create DTO from Registration entity
     public RegistrationDTO(Registration registration) {
         this.id = registration.getId();
         this.eventId = registration.getEvent().getId();
         this.eventTitle = registration.getEvent().getTitle();
         this.eventDescription = registration.getEvent().getDescription();
         this.university = registration.getEvent().getUniversity();
-        this.eventDate = registration.getEvent().getStartDate();
+        this.startDate = registration.getEvent().getStartDate();
+        this.endDate = registration.getEvent().getEndDate();
+        this.location = registration.getEvent().getLocation();
+        this.bannerUrl = registration.getEvent().getBannerUrl();
+        this.attachmentUrl = registration.getEvent().getAttachmentUrl();
+        this.status = registration.getEvent().getStatus().toString();
         this.maxParticipants = registration.getEvent().getMaxParticipants();
         this.currentParticipants = registration.getEvent().getCurrentParticipantCount();
         this.userId = registration.getUser().getId();
         this.userFullName = registration.getUser().getFullName();
-//        this.userLastName = registration.getUser().getLastName();
         this.userEmail = registration.getUser().getEmail();
+        this.createdByUsername = registration.getEvent().getCreatedBy().getUsername();
+        this.createdById = registration.getEvent().getCreatedBy().getId();
+        this.createdByProfilePictureUrl = registration.getEvent().getCreatedBy().getAvatar();
         this.registrationDate = registration.getRegistrationDate();
     }
 

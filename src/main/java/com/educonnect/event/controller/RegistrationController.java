@@ -68,10 +68,10 @@ public class RegistrationController {
     }
 
     @GetMapping("/events/{eventId}/registration-status")
-    public ResponseEntity<Boolean> getRegistrationStatus(@PathVariable Long eventId, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Long> getRegistrationStatus(@PathVariable Long eventId, HttpServletRequest request, HttpServletResponse response) {
         try {
             Users user = authService.me(request, response);
-            Boolean status = rService.getRegistrationStatus(eventId, user.getId());
+            Long status = rService.getRegistrationStatus(eventId, user.getId());
             return ResponseEntity.ok(status);
         } catch (EventNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

@@ -5,6 +5,7 @@ import com.educonnect.event.repo.EventsRepo;
 import com.educonnect.event.repo.RegistrationRepo;
 import com.educonnect.event.repo.TickerRepo;
 import com.educonnect.event.utility.QRCodeGenerator;
+import com.educonnect.user.entity.Users;
 import com.educonnect.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,14 @@ public class PdfService {
     @Autowired
     TickerRepo tickerRepo;
 
-    public byte[] generatePdf(long ticketID) throws Exception {
+    public byte[] generatePdf(Long registrationId , Users user) throws Exception {
+
+        
+        Long ticketID = tickerRepo.findByRegistrationIdAndUser(registrationId , user).getId();
+
+        if(ticketID == null){
+            throw new RuntimeException("Ticket not found for the given registration ID and user");
+        }
         Ticket ticket = tickerRepo.findById(ticketID)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
