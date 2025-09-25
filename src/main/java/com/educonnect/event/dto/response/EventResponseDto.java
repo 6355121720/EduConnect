@@ -14,7 +14,12 @@ public class EventResponseDto {
     private String title;
     private String description;
     private String university;
-    private LocalDateTime date;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private String location;
+    private String bannerUrl;
+    private String attachmentUrl;
+    private String status;
     private Long maxParticipants;
     private Long currentParticipants;
     private String createdByUsername;

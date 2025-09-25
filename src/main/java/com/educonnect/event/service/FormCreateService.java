@@ -433,4 +433,21 @@ public class FormCreateService {
         return responseDTOs;
     }
 
+    public CreateFormResponseDTO getFormById(Long eventId, Long formId, Users currentUser) {
+        eventsRepo.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
+
+        RegistrationForm form = registrationFormRepo.findById(formId)
+                .orElseThrow(() -> new IllegalArgumentException("Form not found with id: " + formId));
+
+        if (!form.getEvent().getId().equals(eventId)) {
+            throw new IllegalArgumentException("Form does not belong to the specified event");
+        }
+
+//        if(!eventRoleService.hasAdministrativeRole(currentUser.getId(), eventId) ) {
+//            throw new IllegalArgumentException("User does not have permission to view All forms for this event");
+//        }
+
+        return registrationFormMapper.toResponseDTO(form);
+    }
 }

@@ -136,6 +136,32 @@ public class FormCreateController {
         }
     }
 
+    @GetMapping("/{formId}")
+    public ResponseEntity<CreateFormResponseDTO> getFormById(
+            @PathVariable Long eventId,
+            @PathVariable Long formId,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        try {
+            Users currentUser = authService.me(request, response);
+
+            CreateFormResponseDTO form = formCreateService.getFormById(eventId, formId, currentUser);
+
+            log.info("Retrieved form {} for event {} by user {}", formId, eventId, currentUser.getId());
+            return ResponseEntity.ok(form);
+
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid input for retrieving form {} in event {}: {}", formId, eventId, e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (EventNotFoundException e) {
+            log.error("Event {} not found when retrieving form {}: {}", eventId, formId, e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error retrieving form {} for event {}: {}", formId, eventId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     @GetMapping("/active")
     public ResponseEntity<List<CreateFormResponseDTO>> getActiveForm(

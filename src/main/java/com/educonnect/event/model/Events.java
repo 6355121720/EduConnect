@@ -34,7 +34,6 @@ public class Events {
 
     @Column(nullable = false)
     private String location; // Physical address or online link
-
     private String bannerUrl; // Optional banner image
 
     private String attachmentUrl; // Optional attachment file

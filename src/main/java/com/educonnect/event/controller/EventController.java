@@ -191,6 +191,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = {"events" , "eventSearch"} , allEntries = true)
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) {
         try {
             Users currentUser = authService.me(request, response);

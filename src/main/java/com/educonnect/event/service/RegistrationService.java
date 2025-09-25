@@ -79,4 +79,9 @@ public class RegistrationService {
         return registrations.stream().map(RegistrationDTO::from).toList();
     }
 
+    public Boolean getRegistrationStatus(Long eventId, UUID id) {
+        Events event = eRepo.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event Not Found"));
+        Users user = uRepo.findById(id).orElseThrow(() -> new RuntimeException("User Not Found"));
+        return rRepo.existsByEventAndUser(event, user);
+    }
 }
