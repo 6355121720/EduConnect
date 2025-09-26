@@ -33,4 +33,5 @@ public interface RegistrationRepo extends JpaRepository<Registration, Long> {
     Long countByEventIdAndFormSubmittedTrue(Long eventId);
 
 
+    List<Registration> findByUserAndFormSubmittedIsTrue(Users user);
 }

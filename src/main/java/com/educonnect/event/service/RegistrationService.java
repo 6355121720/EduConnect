@@ -47,9 +47,9 @@ public class RegistrationService {
 
         Registration registration = new Registration(event , user);
 
-        Ticket ticket = new Ticket(true ,  event , user, registration);
+//        Ticket ticket = new Ticket(true ,  event , user, registration);
         rRepo.save(registration);
-        trepo.save(ticket);
+//        trepo.save(ticket);
         return registration;
     }
 
@@ -66,7 +66,7 @@ public class RegistrationService {
 
     public List<RegistrationDTO> getMyRegistration(UUID userId){
         Users user = uRepo.findById(userId).orElseThrow(() -> new RuntimeException("User Not Found"));
-        List<Registration> registrations = rRepo.findByUser(user);
+        List<Registration> registrations = rRepo.findByUserAndFormSubmittedIsTrue(user);
         return registrations.stream()
                 .map(RegistrationDTO::from)
                 .toList();
@@ -85,6 +85,16 @@ public class RegistrationService {
         Registration registration = (Registration) rRepo.findByEventAndUserAndFormSubmittedIsTrue(event, user).orElse(null);
         if (registration != null && registration.getRegistrationForm() != null) {
             return registration.getRegistrationForm().getId();
+        }
+        return null;
+    }
+
+    public Long getRegistrationId(Long eventId, UUID id) {
+        Events event = eRepo.findById(eventId).orElseThrow(() -> new EventNotFoundException("Event Not Found"));
+        Users user = uRepo.findById(id).orElseThrow(() -> new RuntimeException("User Not Found"));
+        Registration registration = (Registration) rRepo.findByEventAndUserAndFormSubmittedIsTrue(event, user).orElse(null);
+        if (registration != null ) {
+            return registration.getId();
         }
         return null;
     }

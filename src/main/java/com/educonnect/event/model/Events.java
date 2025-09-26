@@ -1,5 +1,6 @@
 package com.educonnect.event.model;
 
+import com.educonnect.event.enums.RegistrationStatus;
 import com.educonnect.user.entity.Users;
 import com.educonnect.event.enums.EventStatus;
 import jakarta.persistence.*;
@@ -76,6 +77,16 @@ public class Events {
         this.updatedAt = LocalDateTime.now();
     }
 
+    @PostUpdate
+    protected void afterUpdate() {
+        if (EventStatus.PUBLISHED.equals(this.status) && registrations != null) {
+            for (Registration reg : registrations) {
+                if(reg.getTicket() != null){
+                    reg.getTicket().syncWithEvent();
+                }
+            }
+        }
+    }
     // Business logic methods
     public long getCurrentParticipantCount() {
         return registrations != null ? registrations.size() : 0;

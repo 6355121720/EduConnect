@@ -279,7 +279,7 @@
                 <div class="event-box">
                     <div class="event-name" th:text="${eventTitle ?: 'Annual Tech Conference 2025'}">Annual Tech Conference 2025</div>
                     <div class="event-details">
-                        <strong>📍</strong> <span th:text="${eventLocation ?: 'Convention Center'}">Convention Center</span><br/>
+                        <strong>📍</strong> <span th:text="${eventLocation ?: 'Convention Center'}">Convention Center</span><br>
                         <strong>📅</strong> <span th:text="${eventDuration ?: 'Sep 26, 2025 09:00 - 17:00'}">Sep 26, 2025 09:00 - 17:00</span>
                     </div>
                 </div>
@@ -310,7 +310,7 @@
 
             <!-- Schedule & Ticket Info -->
             <div class="section">
-                <div class="section-title">📅 Schedule &amp; Ticket Info</div>
+                <div class="section-title">📅 Schedule & Ticket Info</div>
                 <div class="info-grid">
                     <div class="info-row">
                         <div class="info-label">Start:</div>
@@ -359,7 +359,7 @@
 
             <!-- Special Instructions -->
             <div class="instructions" th:if="${specialInstructions}">
-                <strong>⚠️ Special Instructions:</strong><br/>
+                <strong>⚠️ Special Instructions:</strong><br>
                 <span th:text="${specialInstructions}">Please arrive 30 minutes early for registration.</span>
             </div>
             <div class="instructions" th:unless="${specialInstructions}">

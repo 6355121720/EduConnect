@@ -321,6 +321,9 @@ public class FormSubmitService {
         if (event.getStartDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Cannot cancel registration - event already started");
         }
+        if(!registration.getFormSubmitted()){
+            throw new IllegalArgumentException("Cannot cancel registration - form not submitted yet");
+        }
 
         // Soft delete form response and its field responses
         FormResponse formResponse = registration.getFormResponse();

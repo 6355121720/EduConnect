@@ -1,6 +1,7 @@
 package com.educonnect.event.model;
 
 import com.educonnect.event.enums.RegistrationStatus;
+import com.educonnect.event.enums.TicketStatus;
 import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -39,7 +40,7 @@ public class Registration {
     @JoinColumn(name = "form_response_id", unique = true)
     private FormResponse formResponse;
 
-    @OneToOne(mappedBy = "registration", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "registration", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Ticket ticket;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -78,20 +79,35 @@ public class Registration {
         this.statusUpdatedAt = LocalDateTime.now();
     }
 
+    @PostPersist
+    protected void afterCreate() {
+        if (this.ticket == null) {
+            Ticket ticket = new Ticket(this.event, this.user, this);
+            this.setTicket(ticket);
+        }
+    }
+
     @PreUpdate
     protected void onUpdate() {
         this.statusUpdatedAt = LocalDateTime.now();
+
+        // Update ticket status if ticket exists
+        if (this.ticket != null) {
+            this.ticket.updateStatusBasedOnRegistration();
+        }
     }
 
     public boolean canBeConfirmed() {
         return !requiresFormSubmission || formSubmitted;
     }
 
-
-
     public void markFormAsSubmitted(FormResponse formResponse) {
         this.formResponse = formResponse;
         this.formSubmitted = true;
+        // Trigger ticket update when form is submitted
+        if (this.ticket != null) {
+            this.ticket.updateStatusBasedOnRegistration();
+        }
     }
 
 }

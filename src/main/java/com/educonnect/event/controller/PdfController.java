@@ -31,15 +31,10 @@ public class PdfController {
 
     @GetMapping("/download_ticket")
     public ResponseEntity<byte[]> getInvoicePdf(
-            @RequestParam Long registrationId , HttpServletRequest request, HttpServletResponse response) {
+            @RequestParam Long registrationId) {
         try {
-            Users user = authService.me(request, response);
-//            Ticket ticket = trepo.findByRegistrationId(registrationId);
-//            if (ticket == null) {
-//                return ResponseEntity.notFound().build();
-//            }
 
-            byte[] pdfBytes = pdfService.generatePdf(registrationId , user);
+            byte[] pdfBytes = pdfService.generatePdf(registrationId);
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=ticket.pdf")
