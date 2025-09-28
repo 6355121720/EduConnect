@@ -131,9 +131,9 @@ public class EventService {
         crrEvent.setStartDate(newEvent.getStartDate());
         crrEvent.setEndDate(newEvent.getEndDate());
         crrEvent.setLocation(newEvent.getLocation());
-//        crrEvent.setBannerUrl(newEvent.getBannerUrl());
         crrEvent.setMaxParticipants(newEvent.getMaxParticipants());
-
+        crrEvent.setBannerUrl(newEvent.getBannerUrl());
+        crrEvent.setAttachmentUrl(newEvent.getAttachmentUrl());
         validateEventData(crrEvent);
 
         return erepo.save(crrEvent);
@@ -212,7 +212,7 @@ public class EventService {
                 new IllegalArgumentException("Event not found with id: " + eventId)
         );
 
-        return event.getMaxParticipants() - event.getCurrentParticipantCount();
+        return event.getMaxParticipants() - repo.countByEventIdAndFormSubmittedTrue(eventId);
     }
 
     public boolean isEventFull(Long eventId){

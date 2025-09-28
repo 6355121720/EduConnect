@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -105,14 +106,18 @@ public class EventController {
     }
 
     @GetMapping("/dateRange")
-    public ResponseEntity<List<EventResponseDto>> getEventsByDateRange(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDateTime startDate,
-                                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDateTime endDate) {
+    public ResponseEntity<List<EventResponseDto>> getEventsByDateRange(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
 
         if(startDate == null || endDate == null || startDate.isAfter(endDate)) {
             return ResponseEntity.badRequest().build();
         }
 
-        List<EventResponseDto> responce = eventService.getEventsByDateRange(startDate , endDate).stream().map(EventMapper::toEventResponseDto).toList();
+        // Convert LocalDate to LocalDateTime (start of day for startDate, end of day for endDate)
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+
+        List<EventResponseDto> responce = eventService.getEventsByDateRange(startDateTime, endDateTime).stream().map(EventMapper::toEventResponseDto).toList();
 
         return ResponseEntity.ok(responce);
     }
@@ -191,6 +196,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = {"events" , "eventSearch"} , allEntries = true)
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) {
         try {
             Users currentUser = authService.me(request, response);
@@ -292,4 +298,3 @@ public class EventController {
 
 
 }
-

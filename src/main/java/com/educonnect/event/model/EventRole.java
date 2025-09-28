@@ -4,12 +4,13 @@ import com.educonnect.event.enums.EventRoleType;
 import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Getter
 @Setter
 @Entity
@@ -42,5 +43,17 @@ public class EventRole {
         this.assignedAt = LocalDateTime.now();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        EventRole eventRole = (EventRole) o;
+        return id != null && Objects.equals(id, eventRole.id);
+    }
 
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

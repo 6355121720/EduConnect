@@ -6,8 +6,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Date;
 import java.util.Objects;
@@ -17,7 +18,8 @@ import java.util.UUID;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Builder
 public class Users {
 
@@ -42,7 +44,7 @@ public class Users {
     @CollectionTable(
             name = "users_skill",
             joinColumns = {
-                    @JoinColumn(name = "user_id", referencedColumnName = "id") // if you dont specify referencedColumnName then also it will work as it follows pattern user_id (entity_attribute) -> attribute
+                    @JoinColumn(name = "user_id", referencedColumnName = "id")
             }
     )
     @Column(name = "skill")
@@ -330,9 +332,16 @@ public class Users {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Users users = (Users) o;
+        return id != null && id.equals(users.id);
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(id);
     }
 
 }
-

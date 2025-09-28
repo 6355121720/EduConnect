@@ -3,10 +3,12 @@ package com.educonnect.event.model;
 import com.educonnect.event.enums.FieldType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.Hibernate;
 import java.util.List;
+import java.util.Objects;
+
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Getter
 @Setter
 @Entity
@@ -47,4 +49,18 @@ public class FormField {
     // Relationships
     @OneToMany(mappedBy = "field", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<FormFieldResponse> fieldResponses;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        FormField formField = (FormField) o;
+        return id != null && Objects.equals(id, formField.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
