@@ -5,6 +5,9 @@ import com.educonnect.event.enums.EventStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -23,14 +26,15 @@ public class Events {
     private Long id;
 
     @NotBlank
-    @Column(nullable = false, length = 300)
+    @Column(nullable = false, length = 300, columnDefinition = "VARCHAR(300)")
     @Size(max = 300)
     private String title;
 
     // Use large VARCHAR instead of CLOB/TEXT to prevent OID-based Clob retrieval issues
     @NotBlank
     @Size(max = 8000)
-    @Column(nullable = false, length = 8000)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, length = 8000, columnDefinition = "VARCHAR(8000)")
     private String description;
 
     @NotNull
@@ -42,12 +46,14 @@ public class Events {
     private LocalDateTime endDate;
 
     @NotBlank
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 500, columnDefinition = "VARCHAR(500)")
     @Size(max = 500)
     private String location; // Physical address or online link
 
+    @Column(length = 2048)
     private String bannerUrl; // Optional banner image
 
+    @Column(length = 2048)
     private String attachmentUrl; // Optional attachment file
 
     @Enumerated(EnumType.STRING)
