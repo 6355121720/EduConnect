@@ -5,6 +5,8 @@ import com.educonnect.event.model.Registration;
 import com.educonnect.event.model.RegistrationForm;
 import com.educonnect.user.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -37,4 +39,7 @@ public interface RegistrationRepo extends JpaRepository<Registration, Long> {
     List<Registration> findByUserAndFormSubmittedIsTrue(Users user);
 
     long countByEventAndRegistrationFormAndFormSubmittedTrue(Events event, RegistrationForm form);
+
+    @Query("SELECT r.user FROM Registration r WHERE r.event.id = :eventId AND r.formSubmitted = true")
+    List<Users> findRegisteredUsersByEventIdAndFormSubmittedTrue(@Param("eventId") Long eventId);
 }
