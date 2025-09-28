@@ -8,7 +8,8 @@ import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Builder
 public class PagedResponse<T> {
     private List<T> content;

@@ -2,13 +2,19 @@ package com.educonnect.event.service;
 
 import com.educonnect.event.dto.response.EventResponseDto;
 import com.educonnect.event.dto.response.PagedResponse;
+import com.educonnect.event.dto.response.ViewRegistrationsDTO;
+import com.educonnect.event.enums.EventRoleType;
+import com.educonnect.event.model.EventRole;
 import com.educonnect.event.model.Events;
 import com.educonnect.event.repo.EventsRepo;
 import com.educonnect.event.repo.RegistrationRepo;
+import com.educonnect.event.repo.EventRoleRepo;
 import com.educonnect.event.utility.EventMapper;
 import com.educonnect.exceptionhandling.exception.EventNotFoundException;
+import com.educonnect.exceptionhandling.exception.FileUploadException;
 import com.educonnect.user.entity.Users;
 import com.educonnect.user.repository.UserRepository;
+import com.educonnect.utils.aws.s3.S3FileUploadUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -19,11 +25,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -32,11 +42,15 @@ public class EventService {
 
     private final EventsRepo erepo;
 
+    private final S3FileUploadUtil s3FileUploadUtil;
+
     private final RegistrationRepo repo;
 
     private final UserRepository uRepo;
 
     private final ApplicationEventPublisher applicationEventPublisher;
+
+    private final EventRoleRepo eventRoleRepo;
 
 
 
@@ -65,7 +79,7 @@ public class EventService {
 
 
 
-    public Events addEvent(Events event , UUID userId) {
+    public Events addEvent(Events event , UUID userId , MultipartFile file) {
         if (event == null) {
             throw new IllegalArgumentException("Event cannot be null");
         }
@@ -73,7 +87,36 @@ public class EventService {
         Users creator = uRepo.findById(userId).orElseThrow(() -> new RuntimeException("User Not Found"));
 
         event.setCreatedBy(creator);
+        if(file != null) {
 
+            if(file.getSize() > 1024 * 1024 * 5){
+                throw new FileUploadException("File size should be less than 5MB.");
+            }
+
+            String bannerUrl;
+
+            try {
+                bannerUrl = s3FileUploadUtil.uploadImage(file);
+            } catch (Exception ex) {
+                throw new FileUploadException("Something happened while uploading file.");
+            }
+            event.setBannerUrl(bannerUrl);
+
+        }
+
+
+        EventRole creatorRole = EventRole.builder()
+                .event(event)
+                .user(creator)
+                .role(EventRoleType.CREATOR)
+                .build();
+
+
+        if(event.getEventRoles() != null){
+            event.getEventRoles().add(creatorRole);
+        } else {
+            event.setEventRoles(List.of(creatorRole));
+        }
 
         validateEventData(event);
 
@@ -89,12 +132,11 @@ public class EventService {
             throw new IllegalArgumentException("Event title cannot be empty");
         }
 
-        if(event.getDate() == null){
-            throw new IllegalArgumentException("Event date cannot be null");
+        if(event.getStartDate() == null || event.getEndDate() == null){
+            throw new IllegalArgumentException("Event start date and end date cannot be null");
         }
-        if(event.getDate().before(new Date()))
-        {
-            throw new IllegalArgumentException("Event date cannot be in the past");
+        if(event.getStartDate().isBefore(LocalDateTime.now()) || event.getEndDate().isBefore(LocalDateTime.now())){
+            throw new IllegalArgumentException("Event start date and end date cannot be in the past");
         }
 
         if(event.getMaxParticipants() <= 0){
@@ -102,7 +144,7 @@ public class EventService {
         }
     }
 
-    public Events updateEvent(Events newEvent , Long id , UUID userId) {
+    public Events updateEvent(Events newEvent , Long id , UUID userId , MultipartFile file) {
         Events crrEvent = erepo.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("Event not found with id: " + id)
         );
@@ -111,12 +153,33 @@ public class EventService {
             throw new IllegalArgumentException("You can only update events which created by you.");
         }
 
+        if(file != null) {
+
+            if(file.getSize() > 1024 * 1024 * 5){
+                throw new FileUploadException("File size should be less than 5MB.");
+            }
+
+            String bannerUrl;
+
+            try {
+                bannerUrl = s3FileUploadUtil.uploadImage(file);
+            } catch (Exception ex) {
+                throw new FileUploadException("Something happened while uploading file.");
+            }
+            crrEvent.setBannerUrl(bannerUrl);
+
+        }
+
+
         crrEvent.setTitle(newEvent.getTitle());
         crrEvent.setDescription(newEvent.getDescription());
         crrEvent.setUniversity(newEvent.getUniversity());
-        crrEvent.setDate(newEvent.getDate());
+        crrEvent.setStartDate(newEvent.getStartDate());
+        crrEvent.setEndDate(newEvent.getEndDate());
+        crrEvent.setLocation(newEvent.getLocation());
         crrEvent.setMaxParticipants(newEvent.getMaxParticipants());
-
+        crrEvent.setBannerUrl(newEvent.getBannerUrl());
+        crrEvent.setAttachmentUrl(newEvent.getAttachmentUrl());
         validateEventData(crrEvent);
 
         return erepo.save(crrEvent);
@@ -162,7 +225,7 @@ public class EventService {
     }
 
     public List<Events> getUpcomingEvents(){
-        return erepo.findByDateAfterOrderByDateAsc(new Date());
+        return erepo.findByStartDateAfterOrderByStartDateDesc(LocalDateTime.now());
     }
 
 //    public List<Events> findEventByCreator(String username){
@@ -174,15 +237,15 @@ public class EventService {
 //    }
 
     public List<Events> getPastEvents(){
-        return erepo.findByDateBeforeOrderByDateDesc(new Date());
+        return erepo.findByStartDateBeforeOrderByStartDateDesc(LocalDateTime.now());
     }
 
-    public List<Events> getEventsByDateRange(Date startDate, Date endDate){
-            return erepo.findByDateBetweenOrderByDateAsc(startDate, endDate);
+    public List<Events> getEventsByDateRange(LocalDateTime startDate, LocalDateTime endDate){
+            return erepo.findByStartDateBetweenOrderByStartDateAsc(startDate, endDate);
     }
 
 
-    public int getEventRegistrationCount(Long eventId){
+    public long getEventRegistrationCount(Long eventId){
         Events event = erepo.findById(eventId).orElseThrow(() ->
                 new IllegalArgumentException("Event not found with id: " + eventId)
         );
@@ -190,12 +253,12 @@ public class EventService {
         return event.getCurrentParticipantCount();
     }
 
-    public int getAvailableSpots(Long eventId){
+    public Long getAvailableSpots(Long eventId){
         Events event = erepo.findById(eventId).orElseThrow(() ->
                 new IllegalArgumentException("Event not found with id: " + eventId)
         );
 
-        return event.getMaxParticipants() - event.getCurrentParticipantCount();
+        return event.getMaxParticipants() - repo.countByEventIdAndFormSubmittedTrue(eventId);
     }
 
     public boolean isEventFull(Long eventId){
@@ -210,7 +273,7 @@ public class EventService {
         Events event = erepo.findById(eventId).orElseThrow(() ->
                 new IllegalArgumentException("Event not found with id: " + eventId)
         );
-        return event.getDate().after(new Date());
+        return event.getStartDate().isAfter(LocalDateTime.now());
     }
     
     
@@ -231,7 +294,7 @@ public class EventService {
     }
 
     public long getTotalActiveEventsCount() {
-        return erepo.countByDateAfter(new Date());
+        return erepo.countByStartDateAfter(LocalDateTime.now());
     }
 
     public long getEventsByCreatorCount(UUID creatorId) {
@@ -252,4 +315,47 @@ public class EventService {
         return event.getCreatedBy().getId();
     }
 
+    @Transactional(readOnly = true)
+    public ViewRegistrationsDTO viewEventRegistrations(Long id, UUID userId) {
+        Events event = erepo.findById(id).orElseThrow(() ->
+                new IllegalArgumentException("Event not found with id: " + id)
+        );
+
+        boolean isCreator = event.getCreatedBy().getId().equals(userId);
+        var eventRole = eventRoleRepo.findByUserIdAndEventId(userId, id);
+        boolean hasPrivilegedRole = false;
+        if(eventRole != null){
+            switch (eventRole.getRole()){
+                case CREATOR, ORGANIZER, MODERATOR, ADMIN -> hasPrivilegedRole = true;
+                default -> hasPrivilegedRole = false;
+            }
+        }
+
+        if(!(isCreator || hasPrivilegedRole)){
+            throw new AccessDeniedException("You are not allowed to view registrations for this event.");
+        }
+
+        Long registrationCount = repo.countByEventIdAndFormSubmittedTrue(id);
+
+        ViewRegistrationsDTO response = new ViewRegistrationsDTO();
+        response.setEventTitle(event.getTitle());
+        response.setRegistrationCount(registrationCount);
+
+        List<Users> registeredUsers = repo.findRegisteredUsersByEventIdAndFormSubmittedTrue(id);
+
+
+        List<ViewRegistrationsDTO.RegistrationDetail> registrationDetails = registeredUsers.stream()
+                .map(user -> new ViewRegistrationsDTO.RegistrationDetail(
+                        user.getId(),
+                        user.getFullName(),
+                        user.getEmail(),
+                        user.getAvatar()
+                ))
+                .toList();
+
+        response.setRegistrations(registrationDetails);
+
+        return response;
+    }
 }
+

@@ -31,6 +31,4 @@ public interface QuestionMapper {
     @Mapping(target = "answers", source = "answers")
     QuestionWholeDto toWholeDto(Question question);
 
-
-
 }
