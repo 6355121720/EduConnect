@@ -1,8 +1,9 @@
 package com.educonnect.event.dto.response;
 
-import lombok.*;
-import org.apache.catalina.LifecycleState;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.List;
 
 @AllArgsConstructor
