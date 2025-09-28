@@ -3,6 +3,7 @@ package com.educonnect.event.controller;
 import com.educonnect.auth.service.AuthService;
 import com.educonnect.event.dto.response.EventResponseDto;
 import com.educonnect.event.dto.response.PagedResponse;
+import com.educonnect.event.dto.response.ViewRegistrationsDTO;
 import com.educonnect.event.model.Events;
 import com.educonnect.event.service.EventService;
 import com.educonnect.event.utility.EventMapper;
@@ -20,10 +21,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -105,14 +109,18 @@ public class EventController {
     }
 
     @GetMapping("/dateRange")
-    public ResponseEntity<List<EventResponseDto>> getEventsByDateRange(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDateTime startDate,
-                                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDateTime endDate) {
+    public ResponseEntity<List<EventResponseDto>> getEventsByDateRange(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
 
         if(startDate == null || endDate == null || startDate.isAfter(endDate)) {
             return ResponseEntity.badRequest().build();
         }
 
-        List<EventResponseDto> responce = eventService.getEventsByDateRange(startDate , endDate).stream().map(EventMapper::toEventResponseDto).toList();
+        // Convert LocalDate to LocalDateTime (start of day for startDate, end of day for endDate)
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+
+        List<EventResponseDto> responce = eventService.getEventsByDateRange(startDateTime, endDateTime).stream().map(EventMapper::toEventResponseDto).toList();
 
         return ResponseEntity.ok(responce);
     }
@@ -162,12 +170,12 @@ public class EventController {
     }
 
 
-    @PostMapping("/")
+    @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @CacheEvict(value = {"events" , "eventSearch"} , allEntries = true)
-    public ResponseEntity<EventResponseDto> addEvent(@RequestBody Events event , HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<EventResponseDto> addEvent(@RequestPart("Event")  Events event , @RequestPart("file") MultipartFile file, HttpServletRequest request, HttpServletResponse response) {
         try{
             Users currentUser = authService.me(request, response);
-            Events savedEvent = eventService.addEvent(event , currentUser.getId());
+            Events savedEvent = eventService.addEvent(event , currentUser.getId() , file);
             EventResponseDto responseDto = EventMapper.toEventResponseDto(savedEvent);
             return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
         }  catch (IllegalArgumentException e){
@@ -177,12 +185,16 @@ public class EventController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @CacheEvict(value = {"events" , "eventSearch"} , allEntries = true)
-    public ResponseEntity<EventResponseDto> updateEvent(@PathVariable Long id, @RequestBody Events event, HttpServletRequest request , HttpServletResponse response) {
+    public ResponseEntity<EventResponseDto> updateEvent(@PathVariable Long id,
+                                                        @RequestPart("Event") Events event,
+                                                        @RequestPart(value = "file", required = false) MultipartFile file,
+                                                        HttpServletRequest request,
+                                                        HttpServletResponse response) {
         try {
             Users currentUser = authService.me(request, response);
-            Events updatedEvent = eventService.updateEvent(event, id, currentUser.getId());
+            Events updatedEvent = eventService.updateEvent(event, id, currentUser.getId() , file);
             EventResponseDto responseDto = EventMapper.toEventResponseDto(updatedEvent);
             return ResponseEntity.ok(responseDto);
         } catch (IllegalArgumentException e) {
@@ -191,6 +203,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{id}")
+    @CacheEvict(value = {"events" , "eventSearch"} , allEntries = true)
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) {
         try {
             Users currentUser = authService.me(request, response);
@@ -288,8 +301,14 @@ public class EventController {
         }
     }
 
+    @GetMapping("/view/{id}/registrations")
+    public ResponseEntity<ViewRegistrationsDTO> viewEventRegistrations(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) {
+        Users currentUser = authService.me(request, response);
+        ViewRegistrationsDTO dto = eventService.viewEventRegistrations(id, currentUser.getId());
+        return ResponseEntity.ok(dto);
+    }
+
 
 
 
 }
-

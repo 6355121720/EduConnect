@@ -29,7 +29,7 @@ public interface SubmitFormMapper {
         List<RegistrationResponseDTO.RegistrationFieldResponseDTO> responses = new ArrayList<>();
         if (formResponse != null && formResponse.getFieldResponses() != null) {
             responses = formResponse.getFieldResponses().stream()
-                    .filter(r -> !Boolean.TRUE.equals(r.getIsDeleted()))
+//                    .filter(r -> !Boolean.TRUE.equals(r.getIsDeleted()))
                     .map(r -> new RegistrationResponseDTO.RegistrationFieldResponseDTO(
                             r.getField().getId(), r.getField().getLabel(), r.getValue()))
                     .toList();

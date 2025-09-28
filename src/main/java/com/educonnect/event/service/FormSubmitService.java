@@ -88,6 +88,13 @@ public class FormSubmitService {
             }
         }
 
+
+        if(form.getMaxResponses() != null && form.getMaxResponses() > 0){
+            long currentFormResponses = registrationRepo.countByEventAndRegistrationFormAndFormSubmittedTrue(event, form);
+            if(currentFormResponses >= form.getMaxResponses()){
+                throw new IllegalArgumentException("Form has reached its maximum number of responses");
+            }
+        }
         // Check for existing registration
         Optional<Registration> existingRegOpt = registrationRepo.findByEventAndUser(event, currentUser);
 
@@ -120,8 +127,12 @@ public class FormSubmitService {
             if (formResponse == null) {
                 formResponse = createNewFormResponse(form, currentUser);
             } else {
-                // Soft delete existing field responses
-                softDeleteExistingFieldResponses(formResponse);
+                // Reactivate soft-deleted form response if needed
+                if (Boolean.TRUE.equals(formResponse.getIsDeleted())) {
+                    formResponse.setIsDeleted(false);
+                    formResponseRepo.save(formResponse);
+                }
+                // Note: Don't soft delete existing field responses here - let createFieldResponses handle reactivation
             }
         }
 
@@ -134,6 +145,9 @@ public class FormSubmitService {
         registration.markFormAsSubmitted(formResponse);
         registration.setStatusUpdatedAt(now);
         registration = registrationRepo.save(registration);
+
+        // Update formLimitEnabled after successful registration
+        updateFormLimitEnabled(form, event);
 
         return submitFormMapper.mapToResponseDTO(registration);
     }
@@ -177,7 +191,6 @@ public class FormSubmitService {
             RegistrationForm form) {
 
         List<FormFieldResponse> createdResponses = new ArrayList<>();
-//        LocalDateTime now = LocalDateTime.now();
 
         for (RegistrationRequestDTO.RegistrationFieldDTO responseDto : requestResponses) {
             FormField field = formFieldRepo.findById(responseDto.getFieldId())
@@ -194,11 +207,23 @@ public class FormSubmitService {
                 continue;
             }
 
-            FormFieldResponse response = new FormFieldResponse();
-            response.setResponse(formResponse);
-            response.setField(field);
-            response.setValue(responseDto.getValue());
-            response.setIsDeleted(false);
+            // Check for existing response (including soft-deleted ones)
+            Optional<FormFieldResponse> existingResponseOpt = formFieldResponseRepo.findByResponseAndField(formResponse, field);
+            FormFieldResponse response;
+
+            if (existingResponseOpt.isPresent()) {
+                // Update existing response (whether it's active or soft-deleted)
+                response = existingResponseOpt.get();
+                response.setValue(responseDto.getValue());
+                response.setIsDeleted(false); // Reactivate if it was soft-deleted
+            } else {
+                // Create new response only if none exists
+                response = new FormFieldResponse();
+                response.setResponse(formResponse);
+                response.setField(field);
+                response.setValue(responseDto.getValue());
+                response.setIsDeleted(false);
+            }
             createdResponses.add(formFieldResponseRepo.save(response));
         }
 
@@ -222,10 +247,12 @@ public class FormSubmitService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No registration found for user in the specified event"));
 
+
+
         // Check if form is submitted and belongs to the requested form
-        if (!Boolean.TRUE.equals(registration.getFormSubmitted())) {
-            throw new IllegalArgumentException("Form submission not completed for this registration");
-        }
+//        if (!Boolean.TRUE.equals(registration.getFormSubmitted())) {
+//            throw new IllegalArgumentException("Form submission not completed for this registration");
+//        }
 
         if (registration.getRegistrationForm() == null ||
                 !registration.getRegistrationForm().getId().equals(form.getId())) {
@@ -270,31 +297,16 @@ public class FormSubmitService {
             formResponse.setForm(form);
             formResponse.setParticipant(currentUser);
             formResponse = formResponseRepo.save(formResponse);
-        } else {
-            if (formResponse.getFieldResponses() != null) {
-                for (FormFieldResponse r : new ArrayList<>(formResponse.getFieldResponses())) {
-                    r.setIsDeleted(true);
-                    formFieldResponseRepo.save(r);
-                }
-            }
         }
 
-        List<FormFieldResponse> createdResponses = new ArrayList<>();
-        for (RegistrationRequestDTO.RegistrationFieldDTO responseDto : request.getResponses()) {
-            Optional<FormField> fieldOpt = formFieldRepo.findById(responseDto.getFieldId());
-            if (fieldOpt.isPresent() && !Boolean.TRUE.equals(fieldOpt.get().getDeleted())) {
-                FormField field = fieldOpt.get();
-                FormFieldResponse response = new FormFieldResponse();
-                response.setResponse(formResponse);
-                response.setField(field);
-                response.setValue(responseDto.getValue());
-                response.setIsDeleted(false);
-                createdResponses.add(formFieldResponseRepo.save(response));
-            }
-        }
-        formResponse.setFieldResponses(createdResponses);
+        // Use the helper method that handles update/create logic
+        List<FormFieldResponse> updatedResponses = createFieldResponses(request.getResponses(), formResponse, form);
+        formResponse.setFieldResponses(updatedResponses);
+        formResponse.setSubmittedAt(LocalDateTime.now());
+        formResponseRepo.save(formResponse);
 
         registration.markFormAsSubmitted(formResponse);
+        registration.setStatusUpdatedAt(LocalDateTime.now());
         registration = registrationRepo.save(registration);
 
         return submitFormMapper.mapToResponseDTO(registration);
@@ -319,15 +331,33 @@ public class FormSubmitService {
         if (event.getStartDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Cannot cancel registration - event already started");
         }
+        if(!registration.getFormSubmitted()){
+            throw new IllegalArgumentException("Cannot cancel registration - form not submitted yet");
+        }
 
-        // Soft delete form response and mark as not submitted
+
+        // Soft delete form response and its field responses
         FormResponse formResponse = registration.getFormResponse();
         if (formResponse != null) {
+            // Soft delete individual field responses
+            if (formResponse.getFieldResponses() != null) {
+                for (FormFieldResponse fieldResponse : formResponse.getFieldResponses()) {
+                    if (!Boolean.TRUE.equals(fieldResponse.getIsDeleted())) {
+                        fieldResponse.setIsDeleted(true);
+                        formFieldResponseRepo.save(fieldResponse);
+                    }
+                }
+            }
+            // Soft delete the form response itself
             formResponse.setIsDeleted(true);
             formResponseRepo.save(formResponse);
         }
+
         registration.setFormSubmitted(false);
         registrationRepo.save(registration);
+
+        // Update formLimitEnabled after cancellation using utility method
+        updateFormLimitEnabled(form, event);
     }
 
     public String checkEligibility(Long eventId, Long formId, Users currentUser) {
@@ -447,4 +477,18 @@ public class FormSubmitService {
                 break;
         }
     }
+
+
+    private void updateFormLimitEnabled(RegistrationForm form, Events event) {
+        if (form.getMaxResponses() != null && form.getMaxResponses() > 0) {
+            long currentFormResponses = registrationRepo.countByEventAndRegistrationFormAndFormSubmittedTrue(event, form);
+            boolean shouldBeEnabled = currentFormResponses >= form.getMaxResponses();
+            form.setFormLimitEnabled(shouldBeEnabled);
+            registrationFormRepo.save(form);
+        } else {
+            form.setFormLimitEnabled(false);
+            registrationFormRepo.save(form);
+        }
+    }
+
 }

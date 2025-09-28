@@ -67,6 +67,35 @@ public class RegistrationController {
         }
     }
 
+    @GetMapping("/events/{eventId}/registration-id")
+    public ResponseEntity<Long> getRegistrationId(@PathVariable Long eventId, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            Users user = authService.me(request, response);
+            Long registrationId = rService.getRegistrationId(eventId, user.getId());
+            return ResponseEntity.ok(registrationId);
+        } catch (EventNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
+    @GetMapping("/events/{eventId}/registration-status")
+    public ResponseEntity<Long> getRegistrationStatus(@PathVariable Long eventId, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            Users user = authService.me(request, response);
+            Long status = rService.getRegistrationStatus(eventId, user.getId());
+            return ResponseEntity.ok(status);
+        } catch (EventNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
+
     @GetMapping("/events/{eventId}/registrations")
     public ResponseEntity<List<RegistrationDTO>> getEventRegistrations(@PathVariable Long eventId) {
         try {

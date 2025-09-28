@@ -3,20 +3,21 @@ package com.educonnect.event.dto.request;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 public class RegistrationRequestDTO {
 
     @NotEmpty(message = "Responses cannot be empty")
     @Valid
     private List<RegistrationFieldDTO> responses;
 
-    @Data
+    @Getter
+    @Setter
     public static class RegistrationFieldDTO {
 
         @NotNull(message = "Field ID is required")
