@@ -14,6 +14,7 @@ import java.util.List;
 public class CreateFormResponseDTO {
     private Long id;
     private String title;
+    private Long maxResponses;
     private Boolean formLimitEnabled;
     @JsonProperty("isActive")
     private boolean active;
