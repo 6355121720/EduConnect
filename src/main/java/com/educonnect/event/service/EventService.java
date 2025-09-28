@@ -131,9 +131,9 @@ public class EventService {
         crrEvent.setStartDate(newEvent.getStartDate());
         crrEvent.setEndDate(newEvent.getEndDate());
         crrEvent.setLocation(newEvent.getLocation());
-//        crrEvent.setBannerUrl(newEvent.getBannerUrl());
         crrEvent.setMaxParticipants(newEvent.getMaxParticipants());
-
+        crrEvent.setBannerUrl(newEvent.getBannerUrl());
+        crrEvent.setAttachmentUrl(newEvent.getAttachmentUrl());
         validateEventData(crrEvent);
 
         return erepo.save(crrEvent);

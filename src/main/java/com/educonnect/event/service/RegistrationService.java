@@ -48,6 +48,8 @@ public class RegistrationService {
         Registration registration = new Registration(event , user);
 
 //        Ticket ticket = new Ticket(true ,  event , user, registration);
+
+        registration.setFormSubmitted(true);
         rRepo.save(registration);
 //        trepo.save(ticket);
         return registration;
@@ -61,6 +63,7 @@ public class RegistrationService {
         Registration registration = rRepo.findByEventAndUser(event, user)
                 .orElseThrow(() -> new RuntimeException("Registration not found"));
 
+        registration.setFormSubmitted(false);
         rRepo.delete(registration);
     }
 
@@ -85,6 +88,9 @@ public class RegistrationService {
         Registration registration = (Registration) rRepo.findByEventAndUserAndFormSubmittedIsTrue(event, user).orElse(null);
         if (registration != null && registration.getRegistrationForm() != null) {
             return registration.getRegistrationForm().getId();
+        }
+        if(registration != null && registration.getFormSubmitted() == true){
+            return -1L;
         }
         return null;
     }

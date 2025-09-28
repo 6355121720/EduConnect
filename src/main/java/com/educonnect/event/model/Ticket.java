@@ -4,15 +4,17 @@ import com.educonnect.user.entity.Users;
 import com.educonnect.event.enums.TicketStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.Hibernate;
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "tickets")
 public class Ticket {
@@ -44,9 +46,6 @@ public class Ticket {
 
     @Column(nullable = false)
     private String holderEmail;
-
-//    @Column(nullable = true)
-//    private String holderPhone;
 
     @Column(nullable = true)
     private Users.University holderUniversity;
@@ -106,13 +105,10 @@ public class Ticket {
         this.issueDate = LocalDateTime.now();
         this.expirationDate = event.getEndDate();
 
-        // Set holder information from user
         this.holderName = user.getFullName();
         this.holderEmail = user.getEmail();
-//        this.holderPhone = user.get;
         this.holderUniversity = user.getUniversity();
 
-        // Set event information for PDF
         this.eventTitle = event.getTitle();
         this.eventLocation = event.getLocation();
         this.eventStartDate = event.getStartDate();
@@ -120,7 +116,6 @@ public class Ticket {
         this.eventDescription = event.getDescription();
         this.eventBannerUrl = event.getBannerUrl();
 
-        // Set organizer information
         this.organizerName = event.getCreatedBy().getFullName();
         this.organizerContact = event.getCreatedBy().getEmail();
 
@@ -145,12 +140,10 @@ public class Ticket {
 
     // Business logic methods
     public void activateTicket() {
-//        if (registration.getFormSubmitted()) {
-            this.status = TicketStatus.ACTIVE;
-            this.activationDate = LocalDateTime.now();
-            this.canGeneratePdf = true;
-            this.updatedAt = LocalDateTime.now();
-//        }
+        this.status = TicketStatus.ACTIVE;
+        this.activationDate = LocalDateTime.now();
+        this.canGeneratePdf = true;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void deactivateTicket() {
@@ -199,8 +192,6 @@ public class Ticket {
                LocalDateTime.now().isAfter(this.eventEndDate);
     }
 
-
-    // Get formatted ticket details for PDF
     public String getFormattedEventDuration() {
         if (eventStartDate != null && eventEndDate != null) {
             return eventStartDate.toLocalDate().equals(eventEndDate.toLocalDate()) ?
@@ -220,7 +211,6 @@ public class Ticket {
         };
     }
 
-    // Update ticket information when event details change
     public void syncWithEvent() {
         if (this.event != null) {
             this.eventTitle = event.getTitle();
@@ -232,4 +222,19 @@ public class Ticket {
             this.expirationDate = event.getEndDate();
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Ticket ticket = (Ticket) o;
+        return id != null && Objects.equals(id, ticket.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
+

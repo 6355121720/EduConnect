@@ -37,6 +37,8 @@ public interface RegistrationFormMapper {
     // Entity to Response DTO mappings
     @Mapping(target = "fields", source = "fields", qualifiedByName = "mapFieldsToResponse")
     @Mapping(target = "active", source = "isActive", defaultValue = "false")
+    @Mapping(target = "deadline", source = "deadline")
+    @Mapping(target = "formLimitEnabled", source = "formLimitEnabled")
     CreateFormResponseDTO toResponseDTO(RegistrationForm entity);
 
     @Mapping(target = ".", source = ".")

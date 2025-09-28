@@ -88,6 +88,13 @@ public class FormSubmitService {
             }
         }
 
+
+        if(form.getMaxResponses() != null && form.getMaxResponses() > 0){
+            long currentFormResponses = registrationRepo.countByEventAndRegistrationFormAndFormSubmittedTrue(event, form);
+            if(currentFormResponses >= form.getMaxResponses()){
+                throw new IllegalArgumentException("Form has reached its maximum number of responses");
+            }
+        }
         // Check for existing registration
         Optional<Registration> existingRegOpt = registrationRepo.findByEventAndUser(event, currentUser);
 
@@ -138,6 +145,9 @@ public class FormSubmitService {
         registration.markFormAsSubmitted(formResponse);
         registration.setStatusUpdatedAt(now);
         registration = registrationRepo.save(registration);
+
+        // Update formLimitEnabled after successful registration
+        updateFormLimitEnabled(form, event);
 
         return submitFormMapper.mapToResponseDTO(registration);
     }
@@ -325,6 +335,7 @@ public class FormSubmitService {
             throw new IllegalArgumentException("Cannot cancel registration - form not submitted yet");
         }
 
+
         // Soft delete form response and its field responses
         FormResponse formResponse = registration.getFormResponse();
         if (formResponse != null) {
@@ -344,6 +355,9 @@ public class FormSubmitService {
 
         registration.setFormSubmitted(false);
         registrationRepo.save(registration);
+
+        // Update formLimitEnabled after cancellation using utility method
+        updateFormLimitEnabled(form, event);
     }
 
     public String checkEligibility(Long eventId, Long formId, Users currentUser) {
@@ -461,6 +475,19 @@ public class FormSubmitService {
             default:
                 // TEXT, TEXTAREA, DATE, PHONE etc. basic non-empty validation already handled by required check
                 break;
+        }
+    }
+
+
+    private void updateFormLimitEnabled(RegistrationForm form, Events event) {
+        if (form.getMaxResponses() != null && form.getMaxResponses() > 0) {
+            long currentFormResponses = registrationRepo.countByEventAndRegistrationFormAndFormSubmittedTrue(event, form);
+            boolean shouldBeEnabled = currentFormResponses >= form.getMaxResponses();
+            form.setFormLimitEnabled(shouldBeEnabled);
+            registrationFormRepo.save(form);
+        } else {
+            form.setFormLimitEnabled(false);
+            registrationFormRepo.save(form);
         }
     }
 

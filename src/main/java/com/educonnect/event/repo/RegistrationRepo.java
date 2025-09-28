@@ -2,6 +2,7 @@ package com.educonnect.event.repo;
 
 import com.educonnect.event.model.Events;
 import com.educonnect.event.model.Registration;
+import com.educonnect.event.model.RegistrationForm;
 import com.educonnect.user.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -34,4 +35,6 @@ public interface RegistrationRepo extends JpaRepository<Registration, Long> {
 
 
     List<Registration> findByUserAndFormSubmittedIsTrue(Users user);
+
+    long countByEventAndRegistrationFormAndFormSubmittedTrue(Events event, RegistrationForm form);
 }

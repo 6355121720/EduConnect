@@ -1,21 +1,18 @@
 package com.educonnect.event.model;
 
-import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.Hibernate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
-import jakarta.persistence.*;
-import lombok.*;
+import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Getter
 @Setter
 @Entity
@@ -34,7 +31,12 @@ public class RegistrationForm {
     private String title;
 
     @Column(nullable = false)
-    private LocalDateTime Deadline;
+    private Long maxResponses;
+
+    private Boolean formLimitEnabled = false;
+
+    @Column(nullable = false)
+    private LocalDateTime deadline;
 
     @Column(nullable = false)
     private Boolean isActive = true;
@@ -67,9 +69,21 @@ public class RegistrationForm {
         this.updatedAt = LocalDateTime.now();
     }
 
-
-
     public int getResponseCount() {
         return responses != null ? responses.size() : 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        RegistrationForm that = (RegistrationForm) o;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

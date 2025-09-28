@@ -5,17 +5,19 @@ import com.educonnect.event.enums.TicketStatus;
 import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Setter
 @Table(name = "registrations" ,
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"event_id" , "user_id"})
@@ -110,4 +112,17 @@ public class Registration {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Registration that = (Registration) o;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

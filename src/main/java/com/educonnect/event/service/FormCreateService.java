@@ -1,4 +1,3 @@
-
 package com.educonnect.event.service;
 
 import com.educonnect.event.dto.request.CreateFormRequestDTO;
@@ -63,6 +62,12 @@ public class FormCreateService {
         if(form.getFields() != null && !form.getFields().isEmpty()) {
             setupFieldRelationships(form);
             validateFields(form.getFields());
+        }
+
+        if(form.getMaxResponses() == null || form.getMaxResponses() <= 0) {
+            form.setMaxResponses(event.getMaxParticipants());
+        } else if(form.getMaxResponses() > event.getMaxParticipants()) {
+            throw new IllegalArgumentException("Max responses cannot exceed event capacity of " + event.getMaxParticipants());
         }
 
         RegistrationForm savedForm = registrationFormRepo.save(form);
@@ -137,36 +142,49 @@ public class FormCreateService {
         RegistrationForm existingForm = registrationFormRepo.findById(formId)
                 .orElseThrow(() -> new IllegalArgumentException("Form not found with id: " + formId));
 
-        if (!existingForm.getIsActive()) {
-            throw new IllegalArgumentException("Cannot update Deleted Form Please create a new form instead.");
-        }
-
         if (!existingForm.getEvent().getId().equals(eventId)) {
             throw new IllegalArgumentException("Form does not belong to the specified event");
         }
 
         if(!eventRoleService.hasAdministrativeRole(currentUser.getId(), eventId) ) {
-            throw new IllegalArgumentException("User does not have permission to view All forms for this event");
+            throw new IllegalArgumentException("User does not have permission to update forms for this event");
         }
 
-
-        if (updateRequest.getTitle() != null) {
+        // Update basic form properties
+        if (updateRequest.getTitle() != null && !updateRequest.getTitle().trim().isEmpty()) {
             existingForm.setTitle(updateRequest.getTitle());
         }
 
-        if (updateRequest.getDeadline() != null && updateRequest.getDeadline().isBefore(events.getStartDate())) {
+        if (updateRequest.getIsActive() != null) {
+            existingForm.setIsActive(updateRequest.getIsActive());
+        }
+
+        if (updateRequest.getMaxResponses() != null) {
+            if (updateRequest.getMaxResponses() <= 0) {
+                throw new IllegalArgumentException("Max responses must be greater than 0");
+            }
+            if (updateRequest.getMaxResponses() > events.getMaxParticipants()) {
+                throw new IllegalArgumentException("Max responses cannot exceed event capacity of " + events.getMaxParticipants());
+            }
+            existingForm.setMaxResponses(updateRequest.getMaxResponses());
+        }
+
+        if (updateRequest.getDeadline() != null) {
             if (updateRequest.getDeadline().isBefore(LocalDateTime.now())) {
                 throw new IllegalArgumentException("Deadline cannot be in the past");
             }
+            if (updateRequest.getDeadline().isAfter(events.getStartDate())) {
+                throw new IllegalArgumentException("Deadline cannot be after event start date");
+            }
             existingForm.setDeadline(updateRequest.getDeadline());
         }
-
 
         if (updateRequest.getFields() != null) {
             updateFormFields(existingForm, updateRequest.getFields());
         }
 
         RegistrationForm savedForm = registrationFormRepo.save(existingForm);
+        log.info("Form {} updated successfully for event {} by user {}", formId, eventId, currentUser.getId());
         return registrationFormMapper.toResponseDTO(savedForm);
     }
 
@@ -243,7 +261,7 @@ public class FormCreateService {
                 log.info("New field created: {}", fieldUpdate.getLabel());
             }
 
-            if (fieldUpdate.getOrderIndex() >= 0) {
+            if (fieldUpdate.getOrderIndex() != null && fieldUpdate.getOrderIndex() >= 0) {
                 field.setOrderIndex(fieldUpdate.getOrderIndex());
             } else {
                 field.setOrderIndex(i);
@@ -288,7 +306,11 @@ public class FormCreateService {
         if (fieldUpdate.getType() != null) {
             field.setType(FieldType.valueOf(fieldUpdate.getType()));
         }
-        field.setRequired(fieldUpdate.isRequired());
+        if (fieldUpdate.getRequired() != null) {
+            field.setRequired(fieldUpdate.getRequired());
+        } else {
+            field.setRequired(false); // Default value
+        }
         if (fieldUpdate.getPlaceholder() != null) {
             field.setPlaceholder(fieldUpdate.getPlaceholder());
         }
@@ -318,11 +340,11 @@ public class FormCreateService {
             throw new IllegalArgumentException("Cannot change field type for field with existing responses: " + field.getLabel());
         }
 
-        if (fieldUpdate.isRequired() && !field.getRequired()) {
+        if (fieldUpdate.getRequired() != null && fieldUpdate.getRequired() && !field.getRequired()) {
             throw new IllegalArgumentException("Cannot make field required when responses exist: " + field.getLabel());
         }
 
-        if (!fieldUpdate.isRequired() && field.getRequired()) {
+        if (fieldUpdate.getRequired() != null && !fieldUpdate.getRequired() && field.getRequired()) {
             field.setRequired(false);
         }
 

@@ -4,13 +4,14 @@ package com.educonnect.event.model;
 import com.educonnect.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Getter
 @Setter
 @Entity
@@ -57,5 +58,17 @@ public class FormResponse {
         return form != null && form.getEvent() != null ? form.getEvent().getId() : null;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        FormResponse that = (FormResponse) o;
+        return id != null && Objects.equals(id, that.id);
+    }
 
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
