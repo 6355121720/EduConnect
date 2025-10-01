@@ -92,26 +92,45 @@ public class EventController {
     }
 
     @GetMapping("/upcoming")
-    public ResponseEntity<List<EventResponseDto>> getUpcomingEvents(){
-        List<EventResponseDto> response = eventService.getUpcomingEvents().stream()
-                .map(EventMapper::toEventResponseDto)
-                .toList();
+    @Cacheable(value = "events", key = "#page + '_' + #size + '_' + #sortBy + '_' + #sortDirection")
+    public ResponseEntity<PagedResponse<EventResponseDto>> getUpcomingEvents(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "startDate") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDirection
+    ){
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page , size , Sort.by(direction, sortBy));
+
+        PagedResponse<EventResponseDto> response = eventService.getUpcomingEvents(pageable);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/past")
-    public ResponseEntity<List<EventResponseDto>> getPastEvents(){
-        List<EventResponseDto> response = eventService.getPastEvents().stream()
-                .map(EventMapper::toEventResponseDto)
-                .toList();
+    @Cacheable(value = "events", key = "#page + '_' + #size + '_' + #sortBy + '_' + #sortDirection")
+    public ResponseEntity<PagedResponse<EventResponseDto>> getPastEvents(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "startDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection
+    ){
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
+        PagedResponse<EventResponseDto> response = eventService.getPastEvents(pageable);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/dateRange")
-    public ResponseEntity<List<EventResponseDto>> getEventsByDateRange(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-
+    @Cacheable(value = "events", key = "#startDate + '_' + #endDate + '_' + #page + '_' + #size + '_' + #sortBy + '_' + #sortDirection")
+    public ResponseEntity<PagedResponse<EventResponseDto>> getEventsByDateRange(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "startDate") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDirection
+    ) {
         if(startDate == null || endDate == null || startDate.isAfter(endDate)) {
             return ResponseEntity.badRequest().build();
         }
@@ -120,21 +139,25 @@ public class EventController {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 
-        List<EventResponseDto> responce = eventService.getEventsByDateRange(startDateTime, endDateTime).stream().map(EventMapper::toEventResponseDto).toList();
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        return ResponseEntity.ok(responce);
+        PagedResponse<EventResponseDto> response = eventService.getEventsByDateRange(startDateTime, endDateTime, pageable);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/popular")
-    public ResponseEntity<List<EventResponseDto>> getPopularEvents(@RequestParam(defaultValue = "10") int limit) {
-        if (limit <= 0) {
-            return ResponseEntity.badRequest().build();
-        }
+    @Cacheable(value = "events", key = "#page + '_' + #size + '_' + #sortBy + '_' + #sortDirection")
+    public ResponseEntity<PagedResponse<EventResponseDto>> getPopularEvents(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "registrationCount") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection
+    ) {
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        List<EventResponseDto> response = eventService.getPopularEvents(limit).stream()
-                .map(EventMapper::toEventResponseDto)
-                .toList();
-
+        PagedResponse<EventResponseDto> response = eventService.getPopularEvents(pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -154,16 +177,27 @@ public class EventController {
 //    }
 
     @GetMapping("/my-created")
-    public ResponseEntity<List<EventResponseDto>> getMyCreatedEvents(HttpServletRequest request, HttpServletResponse response) {
+    @Cacheable(value = "events", key = "#page + '_' + #size + '_' + #sortBy + '_' + #sortDirection")
+    public ResponseEntity<PagedResponse<EventResponseDto>> getMyCreatedEvents(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection
+    ) {
         try {
             if (request == null || response == null) {
                 return ResponseEntity.badRequest().build();
             }
 
             Users currentUser = authService.me(request, response);
-            List<EventResponseDto> responceList = eventService.getMyCreatedEvents(currentUser.getId()).stream().map(EventMapper::toEventResponseDto).toList();
+            Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-            return ResponseEntity.ok(responceList);
+            PagedResponse<EventResponseDto> responseList = eventService.getMyCreatedEvents(currentUser.getId(), pageable);
+
+            return ResponseEntity.ok(responseList);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -172,7 +206,7 @@ public class EventController {
 
     @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @CacheEvict(value = {"events" , "eventSearch"} , allEntries = true)
-    public ResponseEntity<EventResponseDto> addEvent(@RequestPart("Event")  Events event , @RequestPart("file") MultipartFile file, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<EventResponseDto> addEvent(@RequestPart("Event")  Events event , @RequestPart(value = "file" , required = false) MultipartFile file, HttpServletRequest request, HttpServletResponse response) {
         try{
             Users currentUser = authService.me(request, response);
             Events savedEvent = eventService.addEvent(event , currentUser.getId() , file);

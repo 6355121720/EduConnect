@@ -30,6 +30,7 @@ public class FormCreateService {
     private final EventService eventService;
     private final RegistrationFormMapper registrationFormMapper;
     private final EventRoleService eventRoleService;
+    private final FormSubmitService  formSubmitService;
 
     public CreateFormResponseDTO createForm(Long eventId, CreateFormRequestDTO formRequestDTO, Users currentUser) {
         Events event = eventsRepo.findById(eventId)
@@ -182,6 +183,8 @@ public class FormCreateService {
         if (updateRequest.getFields() != null) {
             updateFormFields(existingForm, updateRequest.getFields());
         }
+
+        formSubmitService.updateFormLimitEnabled(existingForm , events);
 
         RegistrationForm savedForm = registrationFormRepo.save(existingForm);
         log.info("Form {} updated successfully for event {} by user {}", formId, eventId, currentUser.getId());
