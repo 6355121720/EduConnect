@@ -15,6 +15,7 @@ public interface SubmitFormMapper {
     @Mapping(target = "registrationId", source = "id")
     @Mapping(target = "eventId", source = "event.id")
     @Mapping(target = "userId", source = "user.id")
+    @Mapping(target = "username", source = "user.username")
     @Mapping(target = "formId", source = "registrationForm.id")
     @Mapping(target = "status", expression = "java(Boolean.TRUE.equals(registration.getFormSubmitted()) ? \"SUBMITTED\" : \"PENDING\")")
     @Mapping(target = "submittedAt", source = "formResponse.submittedAt")

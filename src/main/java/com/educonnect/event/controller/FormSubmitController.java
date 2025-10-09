@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/events/{eventId}/forms/{formId}")
 @CrossOrigin(origins = "*")
@@ -124,6 +126,24 @@ public class FormSubmitController {
             return ResponseEntity.ok(eligibilityStatus);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/get-answers")
+    public ResponseEntity<List<RegistrationResponseDTO>> getFormAnswers(
+            @PathVariable Long eventId,
+            @PathVariable Long formId,
+            HttpServletRequest httpServletRequest,
+            HttpServletResponse httpServletResponse) {
+        try {
+            Users currentUser = authService.me(httpServletRequest, httpServletResponse);
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            List<RegistrationResponseDTO> response = formSubmitService.getFormAnswers(eventId, formId, currentUser);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 }
