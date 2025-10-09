@@ -479,7 +479,7 @@ public class FormSubmitService {
     }
 
 
-    private void updateFormLimitEnabled(RegistrationForm form, Events event) {
+    void updateFormLimitEnabled(RegistrationForm form, Events event) {
         if (form.getMaxResponses() != null && form.getMaxResponses() > 0) {
             long currentFormResponses = registrationRepo.countByEventAndRegistrationFormAndFormSubmittedTrue(event, form);
             boolean shouldBeEnabled = currentFormResponses >= form.getMaxResponses();
