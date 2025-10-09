@@ -13,6 +13,7 @@ public class RegistrationResponseDTO {
 
     // Getters and Setters
     private Long registrationId;
+    private String username;
     private Long eventId;
     private Long formId;
     private UUID userId;
