@@ -491,4 +491,28 @@ public class FormSubmitService {
         }
     }
 
+    public List<RegistrationResponseDTO> getFormAnswers(Long eventId, Long formId, Users currentUser) {
+        Events event = eventsRepo.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Event not found with id: " + eventId));
+
+        RegistrationForm form = registrationFormRepo.findById(formId)
+                .orElseThrow(() -> new IllegalArgumentException("Form not found with id: " + formId));
+
+        if (!form.getEvent().getId().equals(eventId)) {
+            throw new IllegalArgumentException("Form does not belong to the specified event");
+        }
+
+        if(currentUser != event.getCreatedBy()){
+            throw new IllegalArgumentException("Only event creator can access form answers");
+        }
+
+        List<Registration> registrations = registrationRepo.findByEventAndRegistrationFormAndFormSubmittedTrue(event, form);
+        if (registrations.isEmpty()) {
+            throw new IllegalArgumentException("No registrations found for this form");
+        }
+        // For simplicity, return the first registration's responses
+        return registrations.stream()
+                .map(submitFormMapper::mapToResponseDTO)
+                .toList();
+    }
 }

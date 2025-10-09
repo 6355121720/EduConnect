@@ -42,4 +42,6 @@ public interface RegistrationRepo extends JpaRepository<Registration, Long> {
 
     @Query("SELECT r.user FROM Registration r WHERE r.event.id = :eventId AND r.formSubmitted = true")
     List<Users> findRegisteredUsersByEventIdAndFormSubmittedTrue(@Param("eventId") Long eventId);
+
+    List<Registration> findByEventAndRegistrationFormAndFormSubmittedTrue(Events event, RegistrationForm form);
 }
