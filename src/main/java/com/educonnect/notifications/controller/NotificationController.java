@@ -2,6 +2,8 @@ package com.educonnect.notifications.controller;
 
 
 import com.educonnect.auth.service.AuthService;
+import com.educonnect.notifications.dto.requests.MarkSeenRequest;
+import com.educonnect.notifications.dto.responses.MarkSeenResponse;
 import com.educonnect.notifications.dto.responses.NotificationResponse;
 import com.educonnect.notifications.service.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,5 +39,11 @@ public class NotificationController {
     public ResponseEntity<Void> markAllSeen(HttpServletRequest request, HttpServletResponse response) {
         notificationService.markAllAsSeen(authService.me(request , response).getId());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/mark-seen")
+    public ResponseEntity<MarkSeenResponse> markSeen(@RequestBody MarkSeenRequest request){
+        notificationService.markAsRead(request.getNid());
+        return ResponseEntity.ok(new MarkSeenResponse(request.getNid()));
     }
 }

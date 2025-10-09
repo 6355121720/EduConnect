@@ -30,7 +30,7 @@ public class JwtUtils {
                     .setClaims(claims)
                     .setSubject(username)
                     .setIssuedAt(new Date(System.currentTimeMillis()))
-                    .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) //15 minute lifespan for expiration.
+                    .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) //15 minute lifespan for expiration.
                     .signWith(getSignedkey(), SignatureAlgorithm.HS256)
                     .compact();
     }

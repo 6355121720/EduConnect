@@ -1,5 +1,5 @@
 package com.educonnect.notifications.repository;
-// package com.educonnect.notification.repository;
+
 import com.educonnect.notifications.entity.Notification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +13,6 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     long countByRecipientIdAndSeenFalse(UUID recipientId);
 
     @Modifying
-    @Query("update Notification n set n.seen = true where n.recipient.id = :recipientId and n.seen = false")
+    @Query("UPDATE Notification n SET n.seen = true WHERE n.recipient.id = :recipientId AND n.seen = false")
     int markAllAsSeen(UUID recipientId);
 }
