@@ -147,15 +147,13 @@ public class EventController {
     }
 
     @GetMapping("/popular")
-    @Cacheable(value = "events", key = "#page + '_' + #size + '_' + #sortBy + '_' + #sortDirection")
+    @Cacheable(value = "events", key = "#page + '_' + #size")
     public ResponseEntity<PagedResponse<EventResponseDto>> getPopularEvents(
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "registrationCount") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection
+            @RequestParam(defaultValue = "20") int size
     ) {
-        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        // Create pageable without sorting since the query handles sorting by registration count
+        Pageable pageable = PageRequest.of(page, size);
 
         PagedResponse<EventResponseDto> response = eventService.getPopularEvents(pageable);
         return ResponseEntity.ok(response);

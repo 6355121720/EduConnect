@@ -22,6 +22,9 @@ public interface EventsRepo extends JpaRepository<Events, Long> {
 
 //    List<Events> findByDateAfterOrderByDateDesc(Date date);
 
+    @Query("SELECT e FROM Events e ORDER BY CASE WHEN e.endDate >= CURRENT_TIMESTAMP THEN 0 ELSE 1 END, CASE WHEN e.endDate >= CURRENT_TIMESTAMP THEN e.startDate ELSE e.endDate END DESC")
+    Page<Events> getAllEvents(Pageable pageable);
+
     List<Events> findByCreatedBy(Users user);
 
 //    List<Events> findByDateBeforeOrderByDateDesc(Date date);
@@ -32,10 +35,10 @@ public interface EventsRepo extends JpaRepository<Events, Long> {
     Page<Events> findByStartDateBetweenOrderByStartDateAsc(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 
 
-    @Query("SELECT e FROM Events e LEFT JOIN e.registrations r GROUP BY e ORDER BY COUNT(r) DESC")
-    List<Events> findTopEventsByRegistrationCount(Pageable pageable);
+//    @Query("SELECT e FROM Events e LEFT JOIN e.registrations r GROUP BY e ORDER BY COUNT(r) DESC")
+//    List<Events> findTopEventsByRegistrationCount(Pageable pageable);
 
-    @Query("SELECT e FROM Events e LEFT JOIN e.registrations r GROUP BY e ORDER BY COUNT(r) DESC")
+    @Query("SELECT e FROM Events e LEFT JOIN e.registrations r WHERE e.endDate > CURRENT_TIMESTAMP GROUP BY e ORDER BY COUNT(r) / e.maxParticipants DESC")
     Page<Events> findTopEventsByRegistrationCountPaged(Pageable pageable);
 
     List<Events> findByCreatedByOrderByCreatedAtDesc(Users user);

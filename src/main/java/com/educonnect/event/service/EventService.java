@@ -57,7 +57,7 @@ public class EventService {
 //    @Cacheable(value = "events", key = "#pageable.pageNumber + '_' + #pageable.pageSize + '_' + #pageable.sort")
     public PagedResponse<EventResponseDto> getAllEvents(Pageable pageable) {
         log.info("Fetching all events with pagination: {}", pageable);
-        Page<Events> eventsPage = erepo.findAll(pageable);
+        Page<Events> eventsPage = erepo.getAllEvents(pageable);
         List<EventResponseDto> eventDtos = eventsPage.getContent().stream()
                 .map(EventMapper::toEventResponseDto)
                 .toList();
