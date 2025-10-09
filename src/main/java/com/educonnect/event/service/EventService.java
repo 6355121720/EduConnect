@@ -57,7 +57,7 @@ public class EventService {
 //    @Cacheable(value = "events", key = "#pageable.pageNumber + '_' + #pageable.pageSize + '_' + #pageable.sort")
     public PagedResponse<EventResponseDto> getAllEvents(Pageable pageable) {
         log.info("Fetching all events with pagination: {}", pageable);
-        Page<Events> eventsPage = erepo.findAll(pageable);
+        Page<Events> eventsPage = erepo.getAllEvents(pageable);
         List<EventResponseDto> eventDtos = eventsPage.getContent().stream()
                 .map(EventMapper::toEventResponseDto)
                 .toList();
@@ -224,8 +224,20 @@ public class EventService {
                 .build();
     }
 
-    public List<Events> getUpcomingEvents(){
-        return erepo.findByStartDateAfterOrderByStartDateDesc(LocalDateTime.now());
+    public PagedResponse<EventResponseDto> getUpcomingEvents(Pageable pageable){
+        Page<Events> eventsPage = erepo.findByStartDateAfterOrderByStartDateAsc(LocalDateTime.now(), pageable);
+        List<EventResponseDto> eventDtos = eventsPage.getContent().stream()
+                .map(EventMapper::toEventResponseDto)
+                .toList();
+        return PagedResponse.<EventResponseDto>builder()
+                .content(eventDtos)
+                .page(eventsPage.getNumber())
+                .size(eventsPage.getSize())
+                .totalElements(eventsPage.getTotalElements())
+                .totalPages(eventsPage.getTotalPages())
+                .first(eventsPage.isFirst())
+                .last(eventsPage.isLast())
+                .build();
     }
 
 //    public List<Events> findEventByCreator(String username){
@@ -240,10 +252,41 @@ public class EventService {
         return erepo.findByStartDateBeforeOrderByStartDateDesc(LocalDateTime.now());
     }
 
+    public PagedResponse<EventResponseDto> getPastEvents(Pageable pageable){
+        Page<Events> eventsPage = erepo.findByStartDateBeforeOrderByStartDateDesc(LocalDateTime.now(), pageable);
+        List<EventResponseDto> eventDtos = eventsPage.getContent().stream()
+                .map(EventMapper::toEventResponseDto)
+                .toList();
+        return PagedResponse.<EventResponseDto>builder()
+                .content(eventDtos)
+                .page(eventsPage.getNumber())
+                .size(eventsPage.getSize())
+                .totalElements(eventsPage.getTotalElements())
+                .totalPages(eventsPage.getTotalPages())
+                .first(eventsPage.isFirst())
+                .last(eventsPage.isLast())
+                .build();
+    }
+
     public List<Events> getEventsByDateRange(LocalDateTime startDate, LocalDateTime endDate){
             return erepo.findByStartDateBetweenOrderByStartDateAsc(startDate, endDate);
     }
 
+    public PagedResponse<EventResponseDto> getEventsByDateRange(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable){
+        Page<Events> eventsPage = erepo.findByStartDateBetweenOrderByStartDateAsc(startDate, endDate, pageable);
+        List<EventResponseDto> eventDtos = eventsPage.getContent().stream()
+                .map(EventMapper::toEventResponseDto)
+                .toList();
+        return PagedResponse.<EventResponseDto>builder()
+                .content(eventDtos)
+                .page(eventsPage.getNumber())
+                .size(eventsPage.getSize())
+                .totalElements(eventsPage.getTotalElements())
+                .totalPages(eventsPage.getTotalPages())
+                .first(eventsPage.isFirst())
+                .last(eventsPage.isLast())
+                .build();
+    }
 
     public long getEventRegistrationCount(Long eventId){
         Events event = erepo.findById(eventId).orElseThrow(() ->
@@ -275,12 +318,22 @@ public class EventService {
         );
         return event.getStartDate().isAfter(LocalDateTime.now());
     }
-    
-    
-    
-    public List<Events> getPopularEvents(int limit){
-        Pageable pageable = PageRequest.of(0, limit);
-        return erepo.findTopEventsByRegistrationCount(pageable);
+
+
+    public PagedResponse<EventResponseDto> getPopularEvents(Pageable pageable){
+        Page<Events> eventsPage = erepo.findTopEventsByRegistrationCountPaged(pageable);
+        List<EventResponseDto> eventDtos = eventsPage.getContent().stream()
+                .map(EventMapper::toEventResponseDto)
+                .toList();
+        return PagedResponse.<EventResponseDto>builder()
+                .content(eventDtos)
+                .page(eventsPage.getNumber())
+                .size(eventsPage.getSize())
+                .totalElements(eventsPage.getTotalElements())
+                .totalPages(eventsPage.getTotalPages())
+                .first(eventsPage.isFirst())
+                .last(eventsPage.isLast())
+                .build();
     }
 
     public List<Events> getMyCreatedEvents(UUID userId){
@@ -289,29 +342,49 @@ public class EventService {
         return erepo.findByCreatedByOrderByCreatedAtDesc(user);
     }
 
+    public PagedResponse<EventResponseDto> getMyCreatedEvents(UUID userId, Pageable pageable){
+        Users user = uRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        Page<Events> eventsPage = erepo.findByCreatedByOrderByCreatedAtDesc(user, pageable);
+        List<EventResponseDto> eventDtos = eventsPage.getContent().stream()
+                .map(EventMapper::toEventResponseDto)
+                .toList();
+        return PagedResponse.<EventResponseDto>builder()
+                .content(eventDtos)
+                .page(eventsPage.getNumber())
+                .size(eventsPage.getSize())
+                .totalElements(eventsPage.getTotalElements())
+                .totalPages(eventsPage.getTotalPages())
+                .first(eventsPage.isFirst())
+                .last(eventsPage.isLast())
+                .build();
+    }
+
     public long getTotalEventsCount(){
         return erepo.count();
     }
 
-    public long getTotalActiveEventsCount() {
+    public long getTotalActiveEventsCount(){
         return erepo.countByStartDateAfter(LocalDateTime.now());
     }
 
-    public long getEventsByCreatorCount(UUID creatorId) {
-        Users creator = uRepo.findById(creatorId)
+    public long getEventsByCreatorCount(UUID creatorId){
+        Users user = uRepo.findById(creatorId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + creatorId));
-        return erepo.countByCreatedBy(creator);
+        return erepo.countByCreatedBy(user);
     }
 
-    public boolean isUserEventCreator(Long eventId, UUID userId) {
-        Events event = erepo.findById(eventId)
-                .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
+    public boolean isUserEventCreator(Long eventId, UUID userId){
+        Events event = erepo.findById(eventId).orElseThrow(() ->
+                new IllegalArgumentException("Event not found with id: " + eventId)
+        );
         return event.getCreatedBy().getId().equals(userId);
     }
 
-    public UUID getEventCreator(Long eventId) {
-        Events event = erepo.findById(eventId)
-                .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + eventId));
+    public UUID getEventCreator(Long eventId){
+        Events event = erepo.findById(eventId).orElseThrow(() ->
+                new IllegalArgumentException("Event not found with id: " + eventId)
+        );
         return event.getCreatedBy().getId();
     }
 
